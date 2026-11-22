@@ -1,7 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using RepairConnect.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddDbContext<RepairConnectDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("RepairConnect")));
 
 var app = builder.Build();
 
