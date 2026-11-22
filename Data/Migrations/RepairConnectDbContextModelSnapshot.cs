@@ -22,6 +22,68 @@ namespace RepairConnect.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("RepairConnect.Models.ApplicationUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Roles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasDefaultValue("Active");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.ToTable("Users", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Users_Roles", "[Roles] BETWEEN 0 AND 7");
+
+                            t.HasCheckConstraint("CK_Users_Status", "[Status] IN (N'Active', N'Inactive')");
+                        });
+                });
+
             modelBuilder.Entity("RepairConnect.Models.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -198,7 +260,7 @@ namespace RepairConnect.Data.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ServiceCategories");
+                    b.ToTable("ServiceCategories", (string)null);
                 });
 
             modelBuilder.Entity("RepairConnect.Models.TechnicianCategory", b =>
@@ -213,7 +275,7 @@ namespace RepairConnect.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("TechnicianCategories");
+                    b.ToTable("TechnicianCategories", (string)null);
                 });
 
             modelBuilder.Entity("RepairConnect.Models.TechnicianDocument", b =>
@@ -241,7 +303,7 @@ namespace RepairConnect.Data.Migrations
 
                     b.HasIndex("TechnicianUserId");
 
-                    b.ToTable("TechnicianDocuments");
+                    b.ToTable("TechnicianDocuments", (string)null);
                 });
 
             modelBuilder.Entity("RepairConnect.Models.TechnicianProfile", b =>
@@ -309,81 +371,18 @@ namespace RepairConnect.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("RepairConnect.Models.User", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedEmail")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("Roles")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)")
-                        .HasDefaultValue("Active");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .IsUnique();
-
-                    b.ToTable("Users", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Users_Roles", "[Roles] BETWEEN 0 AND 7");
-
-                            t.HasCheckConstraint("CK_Users_Status", "[Status] IN (N'Active', N'Inactive')");
-                        });
-                });
-
             modelBuilder.Entity("RepairConnect.Models.Booking", b =>
                 {
                     b.HasOne("RepairConnect.Models.RepairRequest", "RepairRequest")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("RepairRequestId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("RepairConnect.Models.TechnicianProfile", "Technician")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("TechnicianUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("RepairRequest");
@@ -394,15 +393,15 @@ namespace RepairConnect.Data.Migrations
             modelBuilder.Entity("RepairConnect.Models.RepairRequest", b =>
                 {
                     b.HasOne("RepairConnect.Models.ServiceCategory", "Category")
-                        .WithMany()
+                        .WithMany("RepairRequests")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("RepairConnect.Models.User", "Client")
-                        .WithMany()
+                    b.HasOne("RepairConnect.Models.ApplicationUser", "Client")
+                        .WithMany("RepairRequests")
                         .HasForeignKey("ClientUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -413,9 +412,9 @@ namespace RepairConnect.Data.Migrations
             modelBuilder.Entity("RepairConnect.Models.Review", b =>
                 {
                     b.HasOne("RepairConnect.Models.Booking", "Booking")
-                        .WithOne()
+                        .WithOne("Review")
                         .HasForeignKey("RepairConnect.Models.Review", "BookingId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Booking");
@@ -424,15 +423,15 @@ namespace RepairConnect.Data.Migrations
             modelBuilder.Entity("RepairConnect.Models.TechnicianCategory", b =>
                 {
                     b.HasOne("RepairConnect.Models.ServiceCategory", "Category")
-                        .WithMany()
+                        .WithMany("TechnicianCategories")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("RepairConnect.Models.TechnicianProfile", "Technician")
-                        .WithMany()
+                        .WithMany("Categories")
                         .HasForeignKey("TechnicianUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -443,9 +442,9 @@ namespace RepairConnect.Data.Migrations
             modelBuilder.Entity("RepairConnect.Models.TechnicianDocument", b =>
                 {
                     b.HasOne("RepairConnect.Models.TechnicianProfile", "Technician")
-                        .WithMany()
+                        .WithMany("Documents")
                         .HasForeignKey("TechnicianUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Technician");
@@ -453,20 +452,55 @@ namespace RepairConnect.Data.Migrations
 
             modelBuilder.Entity("RepairConnect.Models.TechnicianProfile", b =>
                 {
-                    b.HasOne("RepairConnect.Models.User", "ReviewedByUser")
-                        .WithMany()
+                    b.HasOne("RepairConnect.Models.ApplicationUser", "ReviewedByUser")
+                        .WithMany("ReviewedProfiles")
                         .HasForeignKey("ReviewedByUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("RepairConnect.Models.User", "User")
-                        .WithOne()
+                    b.HasOne("RepairConnect.Models.ApplicationUser", "User")
+                        .WithOne("TechnicianProfile")
                         .HasForeignKey("RepairConnect.Models.TechnicianProfile", "UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ReviewedByUser");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RepairConnect.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("RepairRequests");
+
+                    b.Navigation("ReviewedProfiles");
+
+                    b.Navigation("TechnicianProfile");
+                });
+
+            modelBuilder.Entity("RepairConnect.Models.Booking", b =>
+                {
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("RepairConnect.Models.RepairRequest", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("RepairConnect.Models.ServiceCategory", b =>
+                {
+                    b.Navigation("RepairRequests");
+
+                    b.Navigation("TechnicianCategories");
+                });
+
+            modelBuilder.Entity("RepairConnect.Models.TechnicianProfile", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("Categories");
+
+                    b.Navigation("Documents");
                 });
 #pragma warning restore 612, 618
         }

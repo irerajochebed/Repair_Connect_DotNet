@@ -1,3 +1,5 @@
+using RepairConnect.Models.Enums;
+
 namespace RepairConnect.Models;
 
 public sealed class Booking
@@ -7,20 +9,12 @@ public sealed class Booking
     public RepairRequest RepairRequest { get; set; } = null!;
     public int TechnicianUserId { get; set; }
     public TechnicianProfile Technician { get; set; } = null!;
-    public BookingStatus Status { get; set; }
+    public BookingStatus Status { get; set; } = BookingStatus.Pending;
     public DateTime? ScheduledDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? AssignedAt { get; set; }
     public DateTime? EndedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
-}
 
-public enum BookingStatus
-{
-    Pending,
-    Accepted,
-    Declined,
-    InProgress,
-    Completed,
-    Cancelled
+    public Review? Review { get; set; }
 }
