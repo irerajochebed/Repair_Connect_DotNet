@@ -1,0 +1,69 @@
+@baseUrl = http://localhost:5202
+
+### 1. Login as Admin
+# @name adminLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@repairconnect.local",
+  "password": "Admin123!",
+  "rememberMe": true
+}
+
+### 2. Get Current Authenticated User (Requires Cookie from Login)
+GET {{baseUrl}}/api/auth/me
+
+### 3. Get Admin Dashboard Metrics
+GET {{baseUrl}}/api/admin/dashboard
+
+### 4. Get Technicians Review List (Default Pending)
+GET {{baseUrl}}/api/admin/technicians?status=Pending&page=1&pageSize=10
+
+### 5. Search Technicians
+GET {{baseUrl}}/api/admin/technicians?status=Pending&search=Bob&page=1&pageSize=10
+
+### 6. Get Technician Review Details
+GET {{baseUrl}}/api/admin/technicians/2
+
+### 7. Approve Technician (Succeeds if has documents)
+PUT {{baseUrl}}/api/admin/technicians/2/approve
+
+### 8. Reject Technician (Requires reason in body)
+PUT {{baseUrl}}/api/admin/technicians/3/reject
+Content-Type: application/json
+
+{
+  "reason": "Missing state license certification document."
+}
+
+### 9. Get Users List with Filters
+GET {{baseUrl}}/api/admin/users?page=1&pageSize=10
+
+### 10. Filter Users by Role and Status
+GET {{baseUrl}}/api/admin/users?role=Technician&status=Active&page=1&pageSize=10
+
+### 11. Create New Admin Account
+POST {{baseUrl}}/api/admin/users
+Content-Type: application/json
+
+{
+  "displayName": "Operations Admin",
+  "email": "ops.admin@repairconnect.local",
+  "phoneNumber": "+250788999888",
+  "password": "SecurePassword123!"
+}
+
+### 12. Deactivate User Account
+PUT {{baseUrl}}/api/admin/users/4/status
+Content-Type: application/json
+
+{
+  "status": "Inactive"
+}
+
+### 13. Soft Delete User Account
+DELETE {{baseUrl}}/api/admin/users/4
+
+### 14. Logout
+POST {{baseUrl}}/api/auth/logout
