@@ -5,6 +5,7 @@ using RepairConnect.Services.Common;
 namespace RepairConnect.Controllers;
 
 [ApiController]
+[ServiceFilter(typeof(ApiAntiforgeryFilter))]
 public abstract class ApiControllerBase : ControllerBase
 {
     protected int CurrentUserId

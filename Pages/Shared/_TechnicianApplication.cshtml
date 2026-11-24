@@ -1,0 +1,24 @@
+<section class="panel technician-application" id="technician-application" aria-labelledby="technician-application-title" hidden>
+    <div class="application-heading"><div><h2 id="technician-application-title">Become a technician</h2><p>Share your skills and a supporting document for review.</p></div>@Ui.Icon("tool")</div>
+    <p class="application-loading" id="application-loading" role="status">Loading your application…</p>
+    <div class="form-error application-error" id="application-error" role="alert" tabindex="-1" hidden></div>
+    <button class="text-button" id="application-retry" type="button" hidden>Try again</button>
+    <div class="application-status" id="application-status" hidden>
+        <div class="application-status-heading"><h3>Your application</h3><span id="application-status-badge" class="status-badge"></span></div>
+        <p id="application-status-message"></p>
+        <dl class="profile-details" id="application-details"></dl>
+        <div class="application-rejection" id="application-rejection" hidden><strong>What needs updating</strong><p id="application-rejection-reason"></p></div>
+        <div class="application-documents" id="application-documents" hidden><h4>Supporting document</h4><ul id="application-document-list"></ul></div>
+        <button class="btn btn-outline-primary" id="application-edit" type="button" hidden>Update and resubmit</button>
+    </div>
+    <form class="application-form" id="technician-application-form" enctype="multipart/form-data" hidden>
+        <div><label class="form-label" for="application-specialization">Specialization *</label><input class="form-control" id="application-specialization" name="specialization" required maxlength="100" pattern=".*\S.*" placeholder="e.g. Plumbing" /><div class="invalid-feedback" id="application-specialization-error"></div></div>
+        <div><label class="form-label" for="application-category">Service category *</label><select class="form-select" id="application-category" name="categoryId" required aria-describedby="application-category-hint"><option value="">Choose a category</option></select><div class="invalid-feedback" id="application-category-error"></div><p class="field-hint mb-0" id="application-category-hint"></p></div>
+        <div><label class="form-label" for="application-experience">Years of experience *</label><input class="form-control" id="application-experience" name="yearsOfExperience" type="number" min="0" max="60" step="1" required placeholder="0" /><div class="invalid-feedback" id="application-experience-error"></div></div>
+        <div><label class="form-label" for="application-address">Address <span class="optional">(optional)</span></label><input class="form-control" id="application-address" name="address" maxlength="300" autocomplete="street-address" placeholder="Your service location" /><div class="invalid-feedback" id="application-address-error"></div></div>
+        <div class="application-full"><label class="form-label" for="application-bio">About your work <span class="optional">(optional)</span></label><textarea class="form-control" id="application-bio" name="bio" rows="2" maxlength="2000" placeholder="Briefly describe your repair skills and experience."></textarea><div class="invalid-feedback" id="application-bio-error"></div></div>
+        <div class="application-full"><label class="form-label" for="application-document">Supporting document *</label><input class="form-control" id="application-document" name="document" type="file" required accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" aria-describedby="application-document-hint" /><p class="field-hint mb-0" id="application-document-hint">Upload one certificate or other supporting document. PDF, JPG or PNG, up to 5 MB. Your document is available to you and administrators.</p><div class="invalid-feedback" id="application-document-error"></div></div>
+        <p class="field-hint application-full mb-0">Your application must be approved before technician access is added to your account.</p>
+        <div class="form-actions application-full"><button class="btn btn-quiet" id="application-cancel" type="button" hidden>Cancel</button><button class="btn btn-primary" id="application-submit" type="submit">Submit application</button></div>
+    </form>
+</section>

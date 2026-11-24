@@ -12,9 +12,9 @@ public class RepairRequestConfiguration : IEntityTypeConfiguration<RepairRequest
         builder.ToTable("RepairRequests", table =>
         {
             table.HasCheckConstraint("CK_RepairRequests_Status",
-                "[Status] IN ('Open', 'Booked', 'Completed', 'Cancelled')");
+                "[Status] IN (N'Open', N'Booked', N'Completed', N'Cancelled')");
             table.HasCheckConstraint("CK_RepairRequests_Urgency",
-                "[Urgency] IN ('Low', 'Medium', 'High')");
+                "[Urgency] IN (N'Low', N'Medium', N'High')");
         });
 
         builder.HasKey(rr => rr.Id);
@@ -48,11 +48,11 @@ public class RepairRequestConfiguration : IEntityTypeConfiguration<RepairRequest
         builder.HasOne(rr => rr.Client)
             .WithMany(u => u.RepairRequests)
             .HasForeignKey(rr => rr.ClientUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(rr => rr.Category)
             .WithMany(sc => sc.RepairRequests)
             .HasForeignKey(rr => rr.CategoryId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

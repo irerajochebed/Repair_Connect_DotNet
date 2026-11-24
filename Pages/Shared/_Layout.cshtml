@@ -1,52 +1,97 @@
-﻿<!DOCTYPE html>
+@{
+    var workspace = ViewData["Workspace"] as bool? == true;
+    var backoffice = workspace && User.IsInRole("Admin");
+    var pageSurface = workspace || ViewData["PageSurface"] as bool? == true;
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString();
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RepairConnect</title>
-    <script type="importmap"></script>
+    <meta name="description" content="Find skilled technicians for everyday home repairs in Kigali with RepairConnect." />
+    <title>@ViewData["Title"] · RepairConnect</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    <link rel="preload" href="~/fonts/poppins-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/RepairConnect.styles.css" asp-append-version="true" />
+    @if (workspace) { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">RepairConnect</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
+<body class="@(backoffice ? "backoffice-page" : null)">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg container @(backoffice ? "admin-navbar-container" : null)" aria-label="Main navigation">
+            <a class="brand" asp-page="/Index"><span class="brand-symbol">@Ui.Icon("tool")</span><span>Repair<span class="brand-accent">Connect</span><small>HOME REPAIRS, SIMPLIFIED</small></span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">@Ui.Icon("menu")</button>
+            <div class="collapse navbar-collapse" id="main-nav">
+                <div class="navbar-nav mx-auto">
+                    <a class="nav-link @(currentPage == "/Index" ? "active" : "")" asp-page="/Index" aria-current="@(currentPage == "/Index" ? "page" : null)">Home</a>
+                    <a class="nav-link @(currentPage == "/Explore" ? "active" : "")" asp-page="/Explore" aria-current="@(currentPage == "/Explore" ? "page" : null)">Find help</a>
+                    <a class="nav-link @(workspace ? "active" : "")" asp-page="/Dashboard" aria-current="@(workspace ? "page" : null)">My workspace</a>
+                </div>
+                <div class="nav-actions d-flex align-items-center gap-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <button class="btn btn-outline-primary nav-profile-button" type="button" data-bs-toggle="modal" data-bs-target="#profile-modal" data-profile-open>@Ui.Icon("user") My profile</button>
+                        <div class="dropdown">
+                            <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="account-menu">@Ui.Icon("user") Account</button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="account-menu">
+                                <li><a class="dropdown-item" asp-page="/Dashboard">My account</a></li>
+                                <li><button class="dropdown-item" type="button" data-logout>Sign out</button></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn @(currentPage == "/Account" ? "btn-outline-primary" : "btn-primary")" asp-page="/Account">@Ui.Icon("user") Sign in</a>
+                    }
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - RepairConnect - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <main id="main-content" class="@(pageSurface ? "page-surface" : null)" tabindex="-1">@RenderBody()</main>
+    @if (backoffice)
+    {
+        <footer class="backoffice-footer"><span>© @DateTime.UtcNow.Year RepairConnect</span><button type="button" data-bs-toggle="modal" data-bs-target="#privacy-modal">Privacy</button></footer>
+    }
+    else
+    {
+    <footer class="site-footer">
+        <div class="container footer-main">
+            <div><a class="brand footer-brand" asp-page="/Index"><span class="brand-symbol">@Ui.Icon("tool")</span><span>RepairConnect</span></a><p>A little help for the place you call home.</p></div>
+            <div class="footer-links">
+                <a asp-page="/Explore">Find help</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-page="/Dashboard" asp-route-panel="technician">For technicians</a>
+                }
+                else
+                {
+                    <a asp-page="/Account" asp-route-mode="register" asp-route-returnUrl="/Dashboard?panel=technician">For technicians</a>
+                }
+                <button type="button" data-bs-toggle="modal" data-bs-target="#privacy-modal">Privacy</button>
+            </div>
         </div>
+        <div class="container footer-bottom"><span>© @DateTime.UtcNow.Year RepairConnect</span><span>Made for better everyday living.</span></div>
     </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    }
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <partial name="_ProfileModal" />
+    }
+    <div class="modal fade" id="privacy-modal" tabindex="-1" aria-labelledby="privacy-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"><h2 class="modal-title" id="privacy-modal-title">Your information</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body privacy-content"><partial name="_PrivacyContent" /></div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="app-toast" class="toast" role="status" aria-live="polite" aria-atomic="true"><div class="d-flex"><div class="toast-body" id="toast-message"></div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div></div></div>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/api.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
+    @if (workspace) { <script src="~/js/admin.js" asp-append-version="true"></script> }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

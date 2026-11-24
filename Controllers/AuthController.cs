@@ -1,30 +1,77 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RepairConnect.Models;
 using RepairConnect.Models.Enums;
 using RepairConnect.Models.ViewModels;
+using RepairConnect.Services;
 
 namespace RepairConnect.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class AuthController : ApiControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IAccountCreationService _accountCreation;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _claimsFactory;
+    private readonly IAntiforgery _antiforgery;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory)
+        IAccountCreationService accountCreation,
+        IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory,
+        IAntiforgery antiforgery)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
+        _accountCreation = accountCreation;
         _claimsFactory = claimsFactory;
+        _antiforgery = antiforgery;
+    }
+
+    [HttpGet("csrf")]
+    [AllowAnonymous]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public IActionResult GetCsrfToken()
+    {
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        return Ok(new { requestToken = tokens.RequestToken });
+    }
+
+    [HttpPost("register")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthUserVm), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Register(
+        [FromBody] RegisterRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Title = "Already signed in",
+                Detail = "Sign out before creating another account.",
+                Status = StatusCodes.Status409Conflict
+            });
+        }
+
+        var result = await _accountCreation.CreateAsync(request, cancellationToken);
+        if (!result.Succeeded)
+        {
+            return ToActionResult(result);
+        }
+
+        var user = result.Data!;
+        var principal = await _claimsFactory.CreateAsync(user);
+        await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal,
+            new AuthenticationProperties { IsPersistent = false });
+
+        return Created("/api/auth/me", ToAuthUserVm(user));
     }
 
     [HttpPost("login")]
@@ -39,23 +86,13 @@ public class AuthController : ApiControllerBase
         var normalizedEmail = request.Email.Trim().ToUpperInvariant();
         var user = await _userManager.FindByEmailAsync(normalizedEmail);
 
-        if (user == null)
+        if (user == null || user.Status == UserStatus.Inactive)
         {
             return BadRequest(new ProblemDetails
             {
                 Title = "Authentication Failed",
                 Detail = "Invalid email or password.",
                 Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        if (user.Status == UserStatus.Inactive)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
-            {
-                Title = "Account Inactive",
-                Detail = "Your account is deactivated. Contact an administrator.",
-                Status = StatusCodes.Status403Forbidden
             });
         }
 
@@ -79,17 +116,7 @@ public class AuthController : ApiControllerBase
 
         await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal, authProperties);
 
-        var vm = new AuthUserVm
-        {
-            Id = user.Id,
-            DisplayName = user.DisplayName,
-            Email = user.Email ?? string.Empty,
-            PhoneNumber = user.PhoneNumber,
-            Roles = user.Roles,
-            Status = user.Status
-        };
-
-        return Ok(vm);
+        return Ok(ToAuthUserVm(user));
     }
 
     [HttpPost("logout")]
@@ -102,6 +129,7 @@ public class AuthController : ApiControllerBase
 
     [HttpGet("me")]
     [Authorize]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> GetCurrentUser()
     {
         var user = await _userManager.FindByIdAsync(CurrentUserId.ToString());
@@ -115,16 +143,16 @@ public class AuthController : ApiControllerBase
             });
         }
 
-        var vm = new AuthUserVm
-        {
-            Id = user.Id,
-            DisplayName = user.DisplayName,
-            Email = user.Email ?? string.Empty,
-            PhoneNumber = user.PhoneNumber,
-            Roles = user.Roles,
-            Status = user.Status
-        };
-
-        return Ok(vm);
+        return Ok(ToAuthUserVm(user));
     }
+
+    private static AuthUserVm ToAuthUserVm(ApplicationUser user) => new()
+    {
+        Id = user.Id,
+        DisplayName = user.DisplayName,
+        Email = user.Email ?? string.Empty,
+        PhoneNumber = user.PhoneNumber,
+        Roles = user.Roles,
+        Status = user.Status
+    };
 }

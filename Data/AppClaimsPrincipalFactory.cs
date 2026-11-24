@@ -19,6 +19,10 @@ public class AppClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationU
     {
         var identity = await base.GenerateClaimsAsync(user);
 
+        foreach (var claim in identity.FindAll(ClaimTypes.Name).ToList())
+        {
+            identity.RemoveClaim(claim);
+        }
         identity.AddClaim(new Claim(ClaimTypes.Name, user.DisplayName));
 
         if ((user.Roles & UserRoles.Client) == UserRoles.Client)

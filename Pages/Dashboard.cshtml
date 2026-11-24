@@ -1,0 +1,36 @@
+@page
+@{ var isAdmin = User.IsInRole("Admin"); ViewData["Title"] = isAdmin ? "Administration" : "My workspace"; ViewData["Workspace"] = true; }
+<section class="workspace-section @(isAdmin ? "admin-workspace-section" : null)">
+    <div class="container @(isAdmin ? "admin-workspace-container" : null)">
+        <div id="session-error" class="info-strip mb-4" role="alert" hidden><div><p id="session-error-text"></p><button class="text-button" type="button" id="session-retry">Try again</button></div></div>
+        @if (isAdmin)
+        {
+            <partial name="_AdminWorkspace" />
+        }
+        else
+        {
+            <div class="workspace-heading">
+                <div>
+                    <span class="eyebrow">MY WORKSPACE</span>
+                    <h1>Hello, <span data-greeting-name>@User.Identity?.Name</span>.</h1>
+                    <p>Your client account and technician application, in one place.</p>
+                </div>
+            </div>
+            <div class="info-strip mb-4">@Ui.Icon("user") <p>@(User.IsInRole("Technician") ? "Your account has both Client and Technician access. You can still use your client account." : "You have a Client account. If you would like to offer repair services, apply below using this same account.")</p></div>
+            <partial name="_TechnicianApplication" />
+        }
+    </div>
+</section>
+<div class="modal fade" id="unavailable-modal" tabindex="-1" aria-labelledby="unavailable-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title" id="unavailable-title">Coming soon</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body"><p id="unavailable-message">Repair requests are not available yet. No request has been created.</p></div>
+        <div class="modal-footer"><button class="btn btn-primary" type="button" data-bs-dismiss="modal">Got it</button></div>
+    </div></div>
+</div>
+@section Scripts {
+    @if (!User.IsInRole("Admin"))
+    {
+        <script src="~/js/technician-application.js" asp-append-version="true"></script>
+    }
+}

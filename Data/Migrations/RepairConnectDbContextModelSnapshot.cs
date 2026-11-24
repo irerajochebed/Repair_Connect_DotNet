@@ -55,7 +55,8 @@ namespace RepairConnect.Data.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
@@ -376,13 +377,13 @@ namespace RepairConnect.Data.Migrations
                     b.HasOne("RepairConnect.Models.RepairRequest", "RepairRequest")
                         .WithMany("Bookings")
                         .HasForeignKey("RepairRequestId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("RepairConnect.Models.TechnicianProfile", "Technician")
                         .WithMany("Bookings")
                         .HasForeignKey("TechnicianUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("RepairRequest");
@@ -395,13 +396,13 @@ namespace RepairConnect.Data.Migrations
                     b.HasOne("RepairConnect.Models.ServiceCategory", "Category")
                         .WithMany("RepairRequests")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("RepairConnect.Models.ApplicationUser", "Client")
                         .WithMany("RepairRequests")
                         .HasForeignKey("ClientUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -414,7 +415,7 @@ namespace RepairConnect.Data.Migrations
                     b.HasOne("RepairConnect.Models.Booking", "Booking")
                         .WithOne("Review")
                         .HasForeignKey("RepairConnect.Models.Review", "BookingId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Booking");
@@ -425,13 +426,13 @@ namespace RepairConnect.Data.Migrations
                     b.HasOne("RepairConnect.Models.ServiceCategory", "Category")
                         .WithMany("TechnicianCategories")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("RepairConnect.Models.TechnicianProfile", "Technician")
                         .WithMany("Categories")
                         .HasForeignKey("TechnicianUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -444,7 +445,7 @@ namespace RepairConnect.Data.Migrations
                     b.HasOne("RepairConnect.Models.TechnicianProfile", "Technician")
                         .WithMany("Documents")
                         .HasForeignKey("TechnicianUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Technician");
@@ -455,12 +456,12 @@ namespace RepairConnect.Data.Migrations
                     b.HasOne("RepairConnect.Models.ApplicationUser", "ReviewedByUser")
                         .WithMany("ReviewedProfiles")
                         .HasForeignKey("ReviewedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("RepairConnect.Models.ApplicationUser", "User")
                         .WithOne("TechnicianProfile")
                         .HasForeignKey("RepairConnect.Models.TechnicianProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("ReviewedByUser");

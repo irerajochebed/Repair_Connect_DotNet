@@ -12,7 +12,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.ToTable("Users", table =>
         {
             table.HasCheckConstraint("CK_Users_Roles", "[Roles] BETWEEN 0 AND 7");
-            table.HasCheckConstraint("CK_Users_Status", "[Status] IN ('Active', 'Inactive')");
+            table.HasCheckConstraint("CK_Users_Status", "[Status] IN (N'Active', N'Inactive')");
         });
 
         builder.HasKey(u => u.Id);
@@ -30,6 +30,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .IsUnique();
 
         builder.Property(u => u.PasswordHash)
+            .HasMaxLength(255)
             .IsRequired();
 
         builder.Property(u => u.DisplayName)

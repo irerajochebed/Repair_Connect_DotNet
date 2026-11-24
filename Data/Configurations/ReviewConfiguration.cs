@@ -29,6 +29,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.HasOne(r => r.Booking)
             .WithOne(b => b.Review)
             .HasForeignKey<Review>(r => r.BookingId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -44,7 +44,8 @@ public class AdminController : ApiControllerBase
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        if (page < 1 || pageSize < 1 || pageSize > 50)
+        if (page < 1 || pageSize < 1 || pageSize > 50 || page > int.MaxValue / pageSize ||
+            (status.HasValue && !Enum.IsDefined(status.Value)))
         {
             return BadRequest(new ProblemDetails
             {
@@ -106,7 +107,9 @@ public class AdminController : ApiControllerBase
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        if (page < 1 || pageSize < 1 || pageSize > 50)
+        if (page < 1 || pageSize < 1 || pageSize > 50 || page > int.MaxValue / pageSize ||
+            (role.HasValue && ((int)role.Value < 0 || (int)role.Value > 7)) ||
+            (status.HasValue && !Enum.IsDefined(status.Value)))
         {
             return BadRequest(new ProblemDetails
             {
@@ -134,7 +137,7 @@ public class AdminController : ApiControllerBase
             return ValidationProblem(ModelState);
         }
 
-        var result = await _userService.UpdateUserStatusAsync(id, request.Status, CurrentUserId, cancellationToken);
+        var result = await _userService.UpdateUserStatusAsync(id, request.Status!.Value, CurrentUserId, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -142,8 +145,8 @@ public class AdminController : ApiControllerBase
     [ProducesResponseType(typeof(UserRowVm), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateAdmin(
-        [FromBody] CreateAdminRequest request,
+    public async Task<IActionResult> CreateUser(
+        [FromBody] CreateUserRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -151,7 +154,7 @@ public class AdminController : ApiControllerBase
             return ValidationProblem(ModelState);
         }
 
-        var result = await _userService.CreateAdminAsync(request, cancellationToken);
+        var result = await _userService.CreateUserAsync(request, cancellationToken);
         if (!result.Succeeded)
         {
             return ToActionResult(result);

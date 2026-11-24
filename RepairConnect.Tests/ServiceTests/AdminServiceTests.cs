@@ -24,7 +24,7 @@ public class AdminServiceTests : IDisposable
             .UseSqlite(_connection)
             .Options;
 
-        using var context = new RepairConnectDbContext(_options);
+        using var context = new SqliteTestDbContext(_options);
         context.Database.EnsureCreated();
     }
 
@@ -33,7 +33,7 @@ public class AdminServiceTests : IDisposable
         _connection.Dispose();
     }
 
-    private RepairConnectDbContext CreateContext() => new(_options);
+    private RepairConnectDbContext CreateContext() => new SqliteTestDbContext(_options);
 
     [Fact]
     public async Task Reject_WithoutReason_Fails()
@@ -220,7 +220,7 @@ public class AdminServiceTests : IDisposable
         await context.SaveChangesAsync();
 
         var passwordHasher = new PasswordHasher<ApplicationUser>();
-        var service = new UserAdminService(context, passwordHasher);
+        var service = new UserAdminService(context, new AccountCreationService(context, passwordHasher));
 
         // Act
         var result = await service.UpdateUserStatusAsync(admin.Id, UserStatus.Inactive, admin.Id);

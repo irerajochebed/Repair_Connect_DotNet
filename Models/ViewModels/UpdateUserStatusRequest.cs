@@ -6,5 +6,6 @@ namespace RepairConnect.Models.ViewModels;
 public class UpdateUserStatusRequest
 {
     [Required]
-    public UserStatus Status { get; set; }
+    [EnumDataType(typeof(UserStatus))]
+    public UserStatus? Status { get; set; }
 }

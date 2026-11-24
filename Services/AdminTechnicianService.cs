@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using RepairConnect.Data;
 using RepairConnect.Models;
@@ -32,8 +33,7 @@ public class AdminTechnicianService : IAdminTechnicianService
         var query = _context.TechnicianProfiles
             .Include(tp => tp.User)
             .Include(tp => tp.Documents)
-            .Where(tp => (tp.User.Roles & UserRoles.Technician) == UserRoles.Technician &&
-                         tp.VerificationStatus == targetStatus);
+            .Where(tp => tp.VerificationStatus == targetStatus);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -77,7 +77,7 @@ public class AdminTechnicianService : IAdminTechnicianService
                 .ThenInclude(tc => tc.Category)
             .FirstOrDefaultAsync(tp => tp.UserId == userId, cancellationToken);
 
-        if (profile == null || (profile.User.Roles & UserRoles.Technician) != UserRoles.Technician)
+        if (profile == null)
         {
             return ServiceResult<TechnicianReviewVm>.NotFound("Technician profile not found.");
         }
@@ -100,8 +100,8 @@ public class AdminTechnicianService : IAdminTechnicianService
             Documents = profile.Documents.Select(d => new DocumentVm
             {
                 Id = d.Id,
-                FileName = System.IO.Path.GetFileName(d.Document),
-                DownloadUrl = null,
+                FileName = $"Qualification{System.IO.Path.GetExtension(d.Document)}",
+                DownloadUrl = $"/api/technician-application/documents/{d.Id}",
                 UploadedAt = d.UploadedAt
             }).ToList()
         };
@@ -114,12 +114,13 @@ public class AdminTechnicianService : IAdminTechnicianService
         int currentAdminId,
         CancellationToken cancellationToken = default)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var profile = await _context.TechnicianProfiles
             .Include(tp => tp.User)
             .Include(tp => tp.Documents)
             .FirstOrDefaultAsync(tp => tp.UserId == userId, cancellationToken);
 
-        if (profile == null || (profile.User.Roles & UserRoles.Technician) != UserRoles.Technician)
+        if (profile == null)
         {
             return ServiceResult.NotFound("Technician profile not found.");
         }
@@ -131,12 +132,19 @@ public class AdminTechnicianService : IAdminTechnicianService
                 ServiceErrorType.BadRequest);
         }
 
+        if (profile.User.Status != UserStatus.Active)
+        {
+            return ServiceResult.Failure("Activate the applicant's account before approving it.");
+        }
+
         profile.VerificationStatus = VerificationStatus.Approved;
+        profile.User.Roles |= UserRoles.Client | UserRoles.Technician;
         profile.ReviewedByUserId = currentAdminId;
         profile.ReviewedAt = DateTime.UtcNow;
         profile.RejectionReason = null;
 
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return ServiceResult.Success();
     }
 
@@ -146,28 +154,32 @@ public class AdminTechnicianService : IAdminTechnicianService
         int currentAdminId,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(reason))
+        if (string.IsNullOrWhiteSpace(reason) || reason.Trim().Length > 2000)
         {
             return ServiceResult.Failure(
-                "Rejection reason is required.",
+                "A rejection reason of at most 2000 characters is required.",
                 ServiceErrorType.BadRequest);
         }
 
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var profile = await _context.TechnicianProfiles
             .Include(tp => tp.User)
             .FirstOrDefaultAsync(tp => tp.UserId == userId, cancellationToken);
 
-        if (profile == null || (profile.User.Roles & UserRoles.Technician) != UserRoles.Technician)
+        if (profile == null)
         {
             return ServiceResult.NotFound("Technician profile not found.");
         }
 
         profile.VerificationStatus = VerificationStatus.Rejected;
+        profile.AvailabilityStatus = AvailabilityStatus.Offline;
+        profile.User.Roles = (profile.User.Roles | UserRoles.Client) & ~UserRoles.Technician;
         profile.RejectionReason = reason.Trim();
         profile.ReviewedByUserId = currentAdminId;
         profile.ReviewedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return ServiceResult.Success();
     }
 }

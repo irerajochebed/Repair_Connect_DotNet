@@ -21,8 +21,8 @@ public interface IUserAdminService
         int currentAdminId,
         CancellationToken cancellationToken = default);
 
-    Task<ServiceResult<UserRowVm>> CreateAdminAsync(
-        CreateAdminRequest request,
+    Task<ServiceResult<UserRowVm>> CreateUserAsync(
+        CreateUserRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult> SoftDeleteUserAsync(

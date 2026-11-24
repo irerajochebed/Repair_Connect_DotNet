@@ -22,6 +22,6 @@ public class TechnicianDocumentConfiguration : IEntityTypeConfiguration<Technici
         builder.HasOne(td => td.Technician)
             .WithMany(tp => tp.Documents)
             .HasForeignKey(td => td.TechnicianUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

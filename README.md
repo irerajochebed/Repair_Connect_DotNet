@@ -16,13 +16,19 @@ RepairConnect is a group project for connecting clients who need repair services
 
 | Area | Status |
 | --- | --- |
-| Web app | ASP.NET Core Razor Pages targeting .NET 10, with starter Home, Privacy, and Error pages |
+| Web app | ASP.NET Core Razor Pages targeting .NET 10, with a Bootstrap 5 frontend across four main pages: Home, Find Help, Account, My Workspace |
 | Database schema | Eight C# models, a SQL Server database context, and the `InitialCreate` migration |
-| User features | Registration, sign-in, technician approval, repair requests, bookings, and reviews are planned |
+| User features | Client sign-up and sign-in/logout, same-account technician applications with private supporting documents, administrator review and enum role grants, user status management, and full service-category management. Repair submissions and bookings are not implemented yet. |
 | Stored procedures | Planned for backend operations if the team adopts the stored-procedure approach |
 | Deployment | This README describes the team workflow. The repository has no deployment pipeline yet. |
 
 ## Quick start
+
+### Connected frontend
+
+Complete the database setup below, then run `dotnet run --launch-profile http` and open [http://localhost:5202](http://localhost:5202). Account and admin screens use the real SQL Server APIs. The browser-only demo records and sample technician profiles have been removed.
+
+See [the frontend guide](docs/FRONTEND.md) for screen routes and [the API guide](docs/API.md) for endpoints, initial administrator setup, and tests.
 
 ### 1. Install the prerequisites and open the project
 
@@ -71,7 +77,7 @@ dotnet run --launch-profile http
 
 Open [http://localhost:5202](http://localhost:5202). If the port differs on your machine, use the URL printed by `dotnet run`. Stop the app with **Ctrl+C**.
 
-To verify the schema, refresh your connection in Rider or SSMS. Expand **RepairConnect → Tables** and look for the eight tables below plus `__EFMigrationsHistory`, which records the migrations that have already run. The starter homepage can load without using SQL Server, so verify the tables separately.
+To verify the schema, refresh your connection in Rider or SSMS. Expand **RepairConnect → Tables** and look for the eight tables below plus `__EFMigrationsHistory`, which records the migrations that have already run. The homepage loads service categories from SQL Server and shows an unavailable state if that connection fails; authentication and administration also require the database.
 
 ## Rider, Visual Studio, and SSMS
 
@@ -105,7 +111,7 @@ A teammate who receives the SQL file can run it in SSMS without the EF command-l
 
 | Table | Purpose and key links |
 | --- | --- |
-| `Users` | Accounts with a unique normalized email and a role flags field |
+| `Users` | Identity-backed `ApplicationUser` accounts with a unique normalized email and a role flags field |
 | `TechnicianProfiles` | Technician details and verification. `UserId` is both the primary key and a reference to `Users.Id`. The reviewer is an optional user reference. |
 | `TechnicianDocuments` | Uploaded CV or certificate references linked to a profile by `TechnicianUserId` |
 | `ServiceCategories` | Repair service categories, with unique names |

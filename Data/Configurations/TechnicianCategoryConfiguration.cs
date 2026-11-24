@@ -15,11 +15,11 @@ public class TechnicianCategoryConfiguration : IEntityTypeConfiguration<Technici
         builder.HasOne(tc => tc.Technician)
             .WithMany(tp => tp.Categories)
             .HasForeignKey(tc => tc.TechnicianUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(tc => tc.Category)
             .WithMany(sc => sc.TechnicianCategories)
             .HasForeignKey(tc => tc.CategoryId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

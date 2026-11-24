@@ -12,7 +12,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.ToTable("Bookings", table =>
         {
             table.HasCheckConstraint("CK_Bookings_Status",
-                "[Status] IN ('Pending', 'Accepted', 'Declined', 'InProgress', 'Completed', 'Cancelled')");
+                "[Status] IN (N'Pending', N'Accepted', N'Declined', N'InProgress', N'Completed', N'Cancelled')");
         });
 
         builder.HasKey(b => b.Id);
@@ -38,11 +38,11 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasOne(b => b.RepairRequest)
             .WithMany(rr => rr.Bookings)
             .HasForeignKey(b => b.RepairRequestId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(b => b.Technician)
             .WithMany(tp => tp.Bookings)
             .HasForeignKey(b => b.TechnicianUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

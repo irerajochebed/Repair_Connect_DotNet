@@ -13,9 +13,9 @@ public class TechnicianProfileConfiguration : IEntityTypeConfiguration<Technicia
         {
             table.HasCheckConstraint("CK_TechnicianProfiles_YearsOfExperience", "[YearsOfExperience] >= 0");
             table.HasCheckConstraint("CK_TechnicianProfiles_VerificationStatus",
-                "[VerificationStatus] IN ('Pending', 'Approved', 'Rejected')");
+                "[VerificationStatus] IN (N'Pending', N'Approved', N'Rejected')");
             table.HasCheckConstraint("CK_TechnicianProfiles_AvailabilityStatus",
-                "[AvailabilityStatus] IN ('Available', 'Busy', 'Offline')");
+                "[AvailabilityStatus] IN (N'Available', N'Busy', N'Offline')");
         });
 
         builder.HasKey(tp => tp.UserId);
@@ -52,11 +52,11 @@ public class TechnicianProfileConfiguration : IEntityTypeConfiguration<Technicia
         builder.HasOne(tp => tp.User)
             .WithOne(u => u.TechnicianProfile)
             .HasForeignKey<TechnicianProfile>(tp => tp.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(tp => tp.ReviewedByUser)
             .WithMany(u => u.ReviewedProfiles)
             .HasForeignKey(tp => tp.ReviewedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

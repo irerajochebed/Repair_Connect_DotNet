@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RepairConnect.Data;
 using RepairConnect.Models;
@@ -11,14 +10,14 @@ namespace RepairConnect.Services;
 public class UserAdminService : IUserAdminService
 {
     private readonly RepairConnectDbContext _context;
-    private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
+    private readonly IAccountCreationService _accountCreation;
 
     public UserAdminService(
         RepairConnectDbContext context,
-        IPasswordHasher<ApplicationUser> passwordHasher)
+        IAccountCreationService accountCreation)
     {
         _context = context;
-        _passwordHasher = passwordHasher;
+        _accountCreation = accountCreation;
     }
 
     public async Task<ServiceResult<PaginatedList<UserRowVm>>> GetUsersAsync(
@@ -82,6 +81,11 @@ public class UserAdminService : IUserAdminService
         int currentAdminId,
         CancellationToken cancellationToken = default)
     {
+        if (!Enum.IsDefined(newStatus))
+        {
+            return ServiceResult.Failure("Invalid account status.", ServiceErrorType.BadRequest);
+        }
+
         if (targetUserId == currentAdminId && newStatus == UserStatus.Inactive)
         {
             return ServiceResult.Failure(
@@ -100,44 +104,25 @@ public class UserAdminService : IUserAdminService
         return ServiceResult.Success();
     }
 
-    public async Task<ServiceResult<UserRowVm>> CreateAdminAsync(
-        CreateAdminRequest request,
+    public async Task<ServiceResult<UserRowVm>> CreateUserAsync(
+        CreateUserRequest request,
         CancellationToken cancellationToken = default)
     {
-        var normalizedEmail = request.Email.Trim().ToUpperInvariant();
-        var exists = await _context.Users.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-        if (exists)
+        var result = await _accountCreation.CreateAsync(request, cancellationToken);
+        if (!result.Succeeded)
         {
-            return ServiceResult<UserRowVm>.Failure(
-                "A user with this email already exists.",
-                ServiceErrorType.Conflict);
+            return ServiceResult<UserRowVm>.Failure(result.Error ?? "Account creation failed.", result.ErrorType);
         }
-
-        var newAdmin = new ApplicationUser
-        {
-            DisplayName = request.DisplayName.Trim(),
-            Email = request.Email.Trim(),
-            NormalizedEmail = normalizedEmail,
-            PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim(),
-            Roles = UserRoles.Admin,
-            Status = UserStatus.Active,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        newAdmin.PasswordHash = _passwordHasher.HashPassword(newAdmin, request.Password);
-
-        _context.Users.Add(newAdmin);
-        await _context.SaveChangesAsync(cancellationToken);
-
+        var newUser = result.Data!;
         var vm = new UserRowVm
         {
-            Id = newAdmin.Id,
-            DisplayName = newAdmin.DisplayName,
-            Email = newAdmin.Email,
-            PhoneNumber = newAdmin.PhoneNumber,
-            Roles = newAdmin.Roles,
-            Status = newAdmin.Status,
-            CreatedAt = newAdmin.CreatedAt
+            Id = newUser.Id,
+            DisplayName = newUser.DisplayName,
+            Email = newUser.Email ?? string.Empty,
+            PhoneNumber = newUser.PhoneNumber,
+            Roles = newUser.Roles,
+            Status = newUser.Status,
+            CreatedAt = newUser.CreatedAt
         };
 
         return ServiceResult<UserRowVm>.Success(vm);
