@@ -6,4 +6,7 @@ public sealed class ServiceCategory
     public required string Name { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
+
+    public ICollection<TechnicianCategory> TechnicianCategories { get; set; } = new List<TechnicianCategory>();
+    public ICollection<RepairRequest> RepairRequests { get; set; } = new List<RepairRequest>();
 }
