@@ -32,15 +32,15 @@ namespace RepairConnect.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     DisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Roles = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false, defaultValue: "Active"),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "SYSUTCDATETIME()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "SYSUTCDATETIME()"),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -74,12 +74,14 @@ namespace RepairConnect.Data.Migrations
                         name: "FK_RepairRequests_ServiceCategories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "ServiceCategories",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_RepairRequests_Users_ClientUserId",
                         column: x => x.ClientUserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -109,12 +111,14 @@ namespace RepairConnect.Data.Migrations
                         name: "FK_TechnicianProfiles_Users_ReviewedByUserId",
                         column: x => x.ReviewedByUserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_TechnicianProfiles_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -140,12 +144,14 @@ namespace RepairConnect.Data.Migrations
                         name: "FK_Bookings_RepairRequests_RepairRequestId",
                         column: x => x.RepairRequestId,
                         principalTable: "RepairRequests",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Bookings_TechnicianProfiles_TechnicianUserId",
                         column: x => x.TechnicianUserId,
                         principalTable: "TechnicianProfiles",
-                        principalColumn: "UserId");
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -162,12 +168,14 @@ namespace RepairConnect.Data.Migrations
                         name: "FK_TechnicianCategories_ServiceCategories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "ServiceCategories",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_TechnicianCategories_TechnicianProfiles_TechnicianUserId",
                         column: x => x.TechnicianUserId,
                         principalTable: "TechnicianProfiles",
-                        principalColumn: "UserId");
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -187,7 +195,8 @@ namespace RepairConnect.Data.Migrations
                         name: "FK_TechnicianDocuments_TechnicianProfiles_TechnicianUserId",
                         column: x => x.TechnicianUserId,
                         principalTable: "TechnicianProfiles",
-                        principalColumn: "UserId");
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -209,7 +218,8 @@ namespace RepairConnect.Data.Migrations
                         name: "FK_Reviews_Bookings_BookingId",
                         column: x => x.BookingId,
                         principalTable: "Bookings",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
