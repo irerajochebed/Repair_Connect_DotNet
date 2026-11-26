@@ -1,8 +1,42 @@
 ﻿@page
 @model RepairConnect.Pages.SignupModel
 @{
+	ViewData["Title"] = "Signup";
 }
 
-<div>
-	This is the signup page help me to find out how it works
+<div class="login-container">
+	<div class="login">
+		<p class="title">Signup</p>
+		<form>
+			<div class="fields">
+				<p class="fil">Email</p>
+				<input class="input" />
+			</div>
+
+			<div class="fields">
+				<p class="fil">Names</p>
+				<input class="input" />
+			</div>
+
+			<div class="fields">
+				<p class="fil">Date of Birth</p>
+				<input class="input" />
+			</div>
+
+
+			<div class="fields">
+				<p class="fil">Password</p>
+				<input class="input" type="password" />
+			</div>
+
+			<div class="fields">
+				<p class="fil">Confirm Password</p>
+				<input class="input" type="password" />
+			</div>
+
+			<div class="fi">
+				<button class="loginBtn">Signup</button>
+			</div>
+		</form>
+	</div>
 </div>

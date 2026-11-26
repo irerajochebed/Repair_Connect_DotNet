@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RepairConnect")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b4111ab85fe56f7b92c8182ec1689e04f0de3ae2")]
 [assembly: System.Reflection.AssemblyProductAttribute("RepairConnect")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RepairConnect")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
