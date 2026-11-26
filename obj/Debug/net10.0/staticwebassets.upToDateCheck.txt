@@ -1,4 +1,5 @@
 wwwroot\css\Sans.woff2
+wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
@@ -61,7 +62,7 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\css\site.css
+C:\Users\twaiv\source\repos\RepairConnect\wwwroot\css\site.css
 C:\Users\twaiv\source\repos\RepairConnect\wwwroot\favicon.ico
 C:\Users\twaiv\source\repos\RepairConnect\wwwroot\js\site.js
 C:\Users\twaiv\source\repos\RepairConnect\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
@@ -123,4 +124,3 @@ C:\Users\twaiv\source\repos\RepairConnect\wwwroot\lib\jquery\dist\jquery.slim.js
 C:\Users\twaiv\source\repos\RepairConnect\wwwroot\lib\jquery\dist\jquery.slim.min.js
 C:\Users\twaiv\source\repos\RepairConnect\wwwroot\lib\jquery\dist\jquery.slim.min.map
 C:\Users\twaiv\source\repos\RepairConnect\wwwroot\lib\jquery\LICENSE.txt
-C:\Users\twaiv\source\repos\RepairConnect\wwwroot\css\site.css

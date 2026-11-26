@@ -95,5 +95,9 @@ C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\refint\RepairConnect
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.pdb
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.genruntimeconfig.cache
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\ref\RepairConnect.dll
-C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\compressed\055qp3qxhj-{0}-wgnjdfsett-wgnjdfsett.gz
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.sourcelink.json
+C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.csproj.AssemblyReference.cache
+C:\Users\twaiv\source\repos\RepairConnect\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\twaiv\source\repos\RepairConnect\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\compressed\055qp3qxhj-{0}-22ocquyw25-22ocquyw25.gz
+C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairCo.1EC8CCA3.Up2Date
