@@ -107,6 +107,10 @@ builder.Services.AddScoped<IAccountCreationService, AccountCreationService>();
 builder.Services.AddScoped<ITechnicianApplicationService, TechnicianApplicationService>();
 builder.Services.AddScoped<ITechnicianDocumentStorage, TechnicianDocumentStorage>();
 builder.Services.AddScoped<IServiceCategoryService, ServiceCategoryService>();
+builder.Services.AddScoped<ITechnicianDirectoryService, TechnicianDirectoryService>();
+builder.Services.AddScoped<IRequestService, RequestService>();
+builder.Services.AddScoped<IClientBookingService, ClientBookingService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
 {
