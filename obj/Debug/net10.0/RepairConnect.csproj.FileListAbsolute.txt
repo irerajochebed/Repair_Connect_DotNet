@@ -96,3 +96,4 @@ C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.pdb
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.genruntimeconfig.cache
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\ref\RepairConnect.dll
 C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\compressed\055qp3qxhj-{0}-wgnjdfsett-wgnjdfsett.gz
+C:\Users\twaiv\source\repos\RepairConnect\obj\Debug\net10.0\RepairConnect.sourcelink.json

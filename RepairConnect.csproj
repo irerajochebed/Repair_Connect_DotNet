@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="Data\" />
+    <Folder Include="Servive\" />
     <Folder Include="Pages\Admin\" />
     <Folder Include="Pages\Techninician\" />
     <Folder Include="Pages\Users\" />
