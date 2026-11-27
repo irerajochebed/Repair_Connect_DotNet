@@ -6,6 +6,7 @@ namespace RepairConnect.Models;
 public class ApplicationUser : IdentityUser<int>
 {
     public required string DisplayName { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public UserRoles Roles { get; set; }
     public UserStatus Status { get; set; } = UserStatus.Active;
     public string? Address { get; set; }

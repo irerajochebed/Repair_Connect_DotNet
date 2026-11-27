@@ -1,0 +1,47 @@
+@page
+@model DashboardModel
+@{ var isAdmin = User.IsInRole("Admin"); ViewData["Title"] = isAdmin ? "Administration" : "My workspace"; ViewData["Workspace"] = true; }
+<section class="workspace-section @(isAdmin ? "admin-workspace-section" : null)">
+    <div class="container @(isAdmin ? "admin-workspace-container" : "client-workspace")">
+        <div id="session-error" class="info-strip mb-4" role="alert" hidden><div><p id="session-error-text"></p><button class="text-button" type="button" id="session-retry">Try again</button></div></div>
+        @if (isAdmin)
+        {
+            <partial name="_AdminWorkspace" />
+        }
+        else
+        {
+            <header class="workspace-heading">
+                <h1>My workspace</h1>
+                <span data-greeting-name>@User.Identity?.Name</span>
+            </header>
+            @if (int.TryParse(Request.Query["submitted"], out var submitted) && Model.Mine.Any(r => r.Id == submitted && r.Status == RepairConnect.Models.Enums.RepairRequestStatus.Open))
+            {
+                <div class="info-strip mb-4" role="status">Your request is open. <a href="#request-@submitted">View my request</a></div>
+            }
+            @if (User.IsInRole("Technician"))
+            {
+                <nav class="workspace-views" aria-label="Workspace views">
+                    @foreach (var (key, label) in new[] { ("board", "Repair board"), ("jobs", "My jobs"), ("personal", "My requests") })
+                    {
+                        <a asp-page="/Dashboard" asp-route-panel="@key" aria-current="@(Model.Panel == key ? "page" : null)">@label</a>
+                    }
+                </nav>
+            }
+            @if (Model.Panel == "technician")
+            {
+                <partial name="_TechnicianApplication" />
+            }
+            else
+            {
+                <partial name="_RepairWorkspace" model="Model" />
+            }
+        }
+    </div>
+</section>
+@section Scripts {
+    @if (!User.IsInRole("Admin"))
+    {
+        <script src="~/js/repairs.js" asp-append-version="true"></script>
+        <script src="~/js/technician-application.js" asp-append-version="true"></script>
+    }
+}

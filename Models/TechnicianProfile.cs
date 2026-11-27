@@ -11,7 +11,7 @@ public sealed class TechnicianProfile
     public required string Specialization { get; set; }
     public int YearsOfExperience { get; set; }
     public string? Address { get; set; }
-    public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
+    public VerificationStatus Status { get; set; } = VerificationStatus.Pending;
     public string? RejectionReason { get; set; }
     public int? ReviewedByUserId { get; set; }
     public ApplicationUser? ReviewedByUser { get; set; }

@@ -1,0 +1,41 @@
+@page
+@{ ViewData["Title"] = "Your account"; }
+<section class="auth-section container">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-6 auth-story">
+            <span class="eyebrow">ONE ACCOUNT. EVERYDAY HELP.</span>
+            <h1>A little less hassle.<br />A lot more sorted.</h1>
+            <p>Find help for your home or put your repair skills to work. Your account brings it together.</p>
+            <div class="auth-benefits">
+                <div>@Ui.Icon("user") Your account, in one place</div>
+                <div>@Ui.Icon("users") Clear roles and permissions</div>
+                <div>@Ui.Icon("shield") Clear access for clients and technicians</div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="panel auth-card">
+                <div class="account-tabs" role="tablist" aria-label="Account access">
+                    <button class="active" id="signin-tab" data-bs-toggle="tab" data-bs-target="#signin-panel" type="button" role="tab" aria-controls="signin-panel" aria-selected="true">Sign in</button>
+                    <button id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab" aria-controls="register-panel" aria-selected="false">Sign up</button>
+                </div>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="signin-panel" role="tabpanel" aria-labelledby="signin-tab" tabindex="0">
+                        <h2>Good to have you back.</h2>
+                        <p class="account-intro">Sign in with your existing account.</p>
+                        <partial name="_SignInForm" />
+                        <p class="auth-switch">New here? <button class="text-button" type="button" data-auth-tab="signup">Sign up</button></p>
+                    </div>
+                    <div class="tab-pane fade" id="register-panel" role="tabpanel" aria-labelledby="register-tab" tabindex="0">
+                        <h2>Create your account</h2>
+                        <p class="account-intro">You can apply to become a technician after signing up.</p>
+                        <partial name="_RegisterForm" />
+                        <div class="signup-links">
+                            <button class="text-button" type="button" data-auth-tab="signin">Sign in instead</button>
+                            <button class="text-button" type="button" data-bs-toggle="modal" data-bs-target="#privacy-modal">Privacy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

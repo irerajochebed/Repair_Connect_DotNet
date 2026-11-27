@@ -4,6 +4,7 @@ namespace RepairConnect.Models.ViewModels;
 
 public abstract class AccountCreationRequest
 {
+    public DateOnly? DateOfBirth { get; set; }
     private string? _displayName;
     private string? _email;
     private string? _phoneNumber;

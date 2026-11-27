@@ -8,7 +8,8 @@ public class TechnicianReviewRowVm
     public required string DisplayName { get; set; }
     public required string Specialization { get; set; }
     public int YearsOfExperience { get; set; }
-    public VerificationStatus VerificationStatus { get; set; }
+    public VerificationStatus Status { get; set; }
+    public bool CategoryReview { get; set; }
     public int DocumentCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }

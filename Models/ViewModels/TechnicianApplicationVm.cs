@@ -9,7 +9,7 @@ public sealed class TechnicianApplicationVm
     public int YearsOfExperience { get; set; }
     public string? Bio { get; set; }
     public string? Address { get; set; }
-    public VerificationStatus VerificationStatus { get; set; }
+    public VerificationStatus Status { get; set; }
     public AvailabilityStatus AvailabilityStatus { get; set; }
     public string? RejectionReason { get; set; }
     public DateTime? ReviewedAt { get; set; }
@@ -19,6 +19,8 @@ public sealed class TechnicianApplicationVm
 
 public sealed class ApplicationCategoryVm
 {
+    public VerificationStatus Status { get; set; }
+    public string? RejectionReason { get; set; }
     public int Id { get; set; }
     public required string Name { get; set; }
 }
