@@ -13,8 +13,11 @@ public sealed class TechnicianApplicationController(ITechnicianApplicationServic
     [HttpGet]
     [Authorize(Policy = "ClientOnly")]
     [ProducesResponseType(typeof(TechnicianApplicationVm), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get(CancellationToken cancellationToken) =>
-        ToActionResult(await applications.GetAsync(CurrentUserId, cancellationToken));
+    public async Task<IActionResult> Get(CancellationToken cancellationToken)
+    {
+        var result = await applications.GetAsync(CurrentUserId, cancellationToken);
+        return ToActionResult(result);
+    }
 
     [HttpPost]
     [Authorize(Policy = "ClientOnly")]
@@ -29,6 +32,13 @@ public sealed class TechnicianApplicationController(ITechnicianApplicationServic
         if (!result.Succeeded) return ToActionResult(result);
         return result.Data!.Created ? Created("/api/technician-application", result.Data.Application) : Ok(result.Data.Application);
     }
+
+    public sealed record CategoryRequest(int[] CategoryIds);
+
+    [HttpPost("categories")]
+    [Authorize(Policy = "TechnicianOnly")]
+    public async Task<IActionResult> AddCategories(CategoryRequest request, CancellationToken ct) =>
+        ToActionResult(await applications.AddCategoriesAsync(CurrentUserId, request.CategoryIds, ct));
 
     [HttpGet("documents/{id:int}")]
     public async Task<IActionResult> Document(int id, CancellationToken cancellationToken)

@@ -26,10 +26,13 @@
                         <p class="auth-switch">New here? <button class="text-button" type="button" data-auth-tab="signup">Sign up</button></p>
                     </div>
                     <div class="tab-pane fade" id="register-panel" role="tabpanel" aria-labelledby="register-tab" tabindex="0">
-                        <h2>Make yourself at home.</h2>
-                        <p class="account-intro">Create your account. You can apply as a technician from your dashboard.</p>
+                        <h2>Create your account</h2>
+                        <p class="account-intro">You can apply to become a technician after signing up.</p>
                         <partial name="_RegisterForm" />
-                        <p class="auth-switch">Already registered? <button class="text-button" type="button" data-auth-tab="signin">Sign in</button></p>
+                        <div class="signup-links">
+                            <button class="text-button" type="button" data-auth-tab="signin">Sign in instead</button>
+                            <button class="text-button" type="button" data-bs-toggle="modal" data-bs-target="#privacy-modal">Privacy</button>
+                        </div>
                     </div>
                 </div>
             </div>

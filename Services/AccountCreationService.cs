@@ -25,6 +25,7 @@ public sealed class AccountCreationService(RepairConnectDbContext context, IPass
             DisplayName = request.DisplayName!,
             Email = request.Email,
             NormalizedEmail = normalizedEmail,
+            DateOfBirth = request.DateOfBirth,
             PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber,
             Roles = UserRoles.Client,
             Status = UserStatus.Active,

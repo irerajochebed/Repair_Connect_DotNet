@@ -1,0 +1,82 @@
+@model RepairConnect.Pages.DashboardModel
+@using RepairConnect.Models.Enums
+@if (Model.Panel == "board")
+{
+    <section id="available-repairs" class="board-section panel" aria-labelledby="board-heading">
+        <header class="board-heading"><h2 id="board-heading">Posted repairs</h2><span>@Model.Available.Count open</span></header>
+        @if (Model.Available.Count == 0) { <p class="mb-0">No open repairs posted by other clients yet.</p> }
+        <div class="posted-grid">
+        @foreach (var item in Model.Available)
+        {
+            var eligible = Model.EligibleCategories.Contains(item.CategoryId);
+            <article class="posted-card">
+                <header><span>@item.Category.Name</span><small>@item.Urgency urgency</small></header>
+                <h3>@item.Title</h3>
+                <p>@item.Description</p>
+                @if (eligible)
+                {
+                    <small>@item.ServiceLocation</small>
+                }
+                @if (item.PreferredDate.HasValue) { <small>Preferred date · @item.PreferredDate.Value.ToString("dd MMM yyyy")</small> }
+                @if (eligible)
+                {
+                    <form data-repair-action="/api/repair-requests/@item.Id/accept" data-after-accept>
+                        <details><summary>Set a service date</summary><input type="date" class="form-control mt-1" aria-label="Agreed service date" name="scheduledDate" /></details>
+                        <button class="btn btn-primary btn-sm">Accept repair</button>
+                    </form>
+                }
+                else { <small class="board-eligibility">Requires @item.Category.Name approval</small> }
+            </article>
+        }
+        </div>
+    </section>
+}
+else if (Model.Panel == "jobs")
+{
+    <section class="panel board-section"><h2>My repair jobs</h2>
+        @if (Model.Jobs.Count == 0) { <p>You haven’t accepted a repair yet.</p> }
+        @foreach (var job in Model.Jobs)
+        {
+            <article class="panel repair-panel">
+                <h3>@job.RepairRequest.Title</h3><p>@job.RepairRequest.ServiceLocation · @(job.Status == BookingStatus.InProgress ? "In progress" : job.Status.ToString())</p>
+                <p>@job.RepairRequest.Description</p>
+                @if (job.Status == BookingStatus.Accepted || job.Status == BookingStatus.InProgress)
+                {
+                    var start = job.Status == BookingStatus.Accepted;
+                    <form data-repair-action="/api/repair-requests/@job.RepairRequestId/@(start ? "start" : "complete")"><button class="btn btn-primary">@(start ? "Start repair" : "Mark completed")</button></form>
+                }
+            </article>
+        }
+    </section>
+ }
+else
+{
+<section class="panel client-requests repair-section" aria-labelledby="my-requests">
+    <div class="repair-section-head"><h2 id="my-requests">My requests</h2><a class="btn btn-primary" asp-page="/Explore">Request a repair</a></div>
+    @if (Model.Mine.Count == 0) { <p>No repair requests yet.</p> }
+    @foreach (var item in Model.Mine)
+    {
+        var booking = item.Bookings.OrderByDescending(b => b.Id).FirstOrDefault(b => b.Status != BookingStatus.Cancelled && b.Status != BookingStatus.Declined);
+        var status = booking?.Status == BookingStatus.InProgress ? "In progress" : booking?.Status.ToString() ?? item.Status.ToString();
+        <article id="request-@item.Id" class="panel repair-panel">
+            <div class="repair-section-head"><h3>@item.Title</h3><span class="badge text-bg-light">@status</span></div>
+            <small>@item.Category.Name · @item.ServiceLocation · @item.Urgency urgency</small>
+            <p>@item.Description</p>
+            @if (booking != null)
+            {
+                <p>Technician: <strong>@booking.Technician.User.DisplayName</strong>@if (booking.ScheduledDate.HasValue) { <span> · Scheduled @booking.ScheduledDate.Value.ToString("dd MMM yyyy")</span> }</p>
+                @if (booking.Review != null) { <p>Your rating: @booking.Review.Rating/5 · @booking.Review.Comment</p> }
+                else if (booking.Status == BookingStatus.Completed)
+                {
+                    <form data-repair-action="/api/repair-requests/@item.Id/review">
+                        <label>Rating<select class="form-select" name="rating" required><option value="">Choose a rating</option>@for (var n = 1; n <= 5; n++) { <option value="@n">@n / 5</option> }</select></label>
+                        <label>Comment (optional)<textarea class="form-control" name="comment" maxlength="2000"></textarea></label>
+                        <button class="btn btn-outline-primary">Send review</button>
+                    </form>
+                }
+            }
+            else if (item.Status == RepairRequestStatus.Open) { <p>Waiting for a technician to accept.</p> }
+        </article>
+    }
+</section>
+}

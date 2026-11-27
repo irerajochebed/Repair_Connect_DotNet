@@ -1,7 +1,8 @@
 @page
+@model DashboardModel
 @{ var isAdmin = User.IsInRole("Admin"); ViewData["Title"] = isAdmin ? "Administration" : "My workspace"; ViewData["Workspace"] = true; }
 <section class="workspace-section @(isAdmin ? "admin-workspace-section" : null)">
-    <div class="container @(isAdmin ? "admin-workspace-container" : null)">
+    <div class="container @(isAdmin ? "admin-workspace-container" : "client-workspace")">
         <div id="session-error" class="info-strip mb-4" role="alert" hidden><div><p id="session-error-text"></p><button class="text-button" type="button" id="session-retry">Try again</button></div></div>
         @if (isAdmin)
         {
@@ -9,28 +10,38 @@
         }
         else
         {
-            <div class="workspace-heading">
-                <div>
-                    <span class="eyebrow">MY WORKSPACE</span>
-                    <h1>Hello, <span data-greeting-name>@User.Identity?.Name</span>.</h1>
-                    <p>Your client account and technician application, in one place.</p>
-                </div>
-            </div>
-            <div class="info-strip mb-4">@Ui.Icon("user") <p>@(User.IsInRole("Technician") ? "Your account has both Client and Technician access. You can still use your client account." : "You have a Client account. If you would like to offer repair services, apply below using this same account.")</p></div>
-            <partial name="_TechnicianApplication" />
+            <header class="workspace-heading">
+                <h1>My workspace</h1>
+                <span data-greeting-name>@User.Identity?.Name</span>
+            </header>
+            @if (int.TryParse(Request.Query["submitted"], out var submitted) && Model.Mine.Any(r => r.Id == submitted && r.Status == RepairConnect.Models.Enums.RepairRequestStatus.Open))
+            {
+                <div class="info-strip mb-4" role="status">Your request is open. <a href="#request-@submitted">View my request</a></div>
+            }
+            @if (User.IsInRole("Technician"))
+            {
+                <nav class="workspace-views" aria-label="Workspace views">
+                    @foreach (var (key, label) in new[] { ("board", "Repair board"), ("jobs", "My jobs"), ("personal", "My requests") })
+                    {
+                        <a asp-page="/Dashboard" asp-route-panel="@key" aria-current="@(Model.Panel == key ? "page" : null)">@label</a>
+                    }
+                </nav>
+            }
+            @if (Model.Panel == "technician")
+            {
+                <partial name="_TechnicianApplication" />
+            }
+            else
+            {
+                <partial name="_RepairWorkspace" model="Model" />
+            }
         }
     </div>
 </section>
-<div class="modal fade" id="unavailable-modal" tabindex="-1" aria-labelledby="unavailable-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-        <div class="modal-header"><h2 class="modal-title" id="unavailable-title">Coming soon</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
-        <div class="modal-body"><p id="unavailable-message">Repair requests are not available yet. No request has been created.</p></div>
-        <div class="modal-footer"><button class="btn btn-primary" type="button" data-bs-dismiss="modal">Got it</button></div>
-    </div></div>
-</div>
 @section Scripts {
     @if (!User.IsInRole("Admin"))
     {
+        <script src="~/js/repairs.js" asp-append-version="true"></script>
         <script src="~/js/technician-application.js" asp-append-version="true"></script>
     }
 }

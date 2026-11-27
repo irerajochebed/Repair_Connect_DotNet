@@ -18,7 +18,7 @@ public class AdminDashboardService : IAdminDashboardService
     public async Task<ServiceResult<AdminDashboardVm>> GetDashboardMetricsAsync(CancellationToken cancellationToken = default)
     {
         var pendingTechnicians = await _context.TechnicianProfiles
-            .CountAsync(tp => tp.VerificationStatus == VerificationStatus.Pending, cancellationToken);
+            .CountAsync(tp => tp.Status == VerificationStatus.Pending || tp.Categories.Any(c => c.ReviewStatus == VerificationStatus.Pending), cancellationToken);
 
         var totalClients = await _context.Users
             .CountAsync(u => (u.Roles & UserRoles.Client) == UserRoles.Client, cancellationToken);

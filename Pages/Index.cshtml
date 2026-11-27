@@ -8,8 +8,8 @@
                 <h1 id="home-title">Less worrying.<br />More <span>getting it fixed.</span></h1>
                 <p class="hero-description">From a leaking tap to a light that won't turn on, find the right person for your home's everyday repairs.</p>
                 <div class="hero-actions">
-                    <a class="btn btn-primary btn-lg" asp-page="/Dashboard" asp-route-new="1">Request a repair</a>
-                    <a class="btn btn-outline-primary btn-lg" asp-page="/Explore">Find help</a>
+                    <a class="btn btn-primary btn-lg" asp-page="/Explore">Request a repair</a>
+                    <a class="btn btn-outline-primary btn-lg" href="#services">Browse services</a>
                 </div>
                 <div class="hero-reassurance">@Ui.Icon("shield") <span>Skilled technicians. Clear requests. One simple place.</span></div>
             </div>
@@ -17,8 +17,7 @@
                 <div class="quick-request panel">
                     <h2>What needs fixing?</h2>
                     <p>Start with a service and location.</p>
-                    <form action="/Dashboard" method="get" id="quick-request-form">
-                        <input type="hidden" name="new" value="1" />
+                    <form action="/Explore" method="get" id="quick-request-form">
                         <div class="quick-fields">
                             <div>
                                 <label for="quick-category" class="form-label">Service</label>
@@ -36,7 +35,7 @@
                             </div>
                         </div>
                         <button class="btn btn-primary w-100 quick-submit" type="submit">Get started</button>
-                        <p class="form-footnote">Describe your repair before choosing a technician.</p>
+                        <p class="form-footnote">A technician in your service category can accept your request.</p>
                     </form>
                 </div>
                 <div class="hero-card-note">@Ui.Icon("check") One account for all your home repairs</div>
@@ -60,7 +59,7 @@
         <div class="service-grid">
             @foreach (var service in Model.Categories)
             {
-                <a class="service-tile" asp-page="/Dashboard" asp-route-new="1" asp-route-category="@service.Id" aria-describedby="service-hint-@service.Id">
+                <a class="service-tile" asp-page="/Explore" asp-route-category="@service.Id" aria-describedby="service-hint-@service.Id">
                     <span class="service-tile-icon">@Ui.Icon(Ui.ServiceIcon(service.Name))</span>
                     <span class="service-tile-name">@service.Name</span>
                     <span class="visually-hidden" id="service-hint-@service.Id">@service.Description</span>
@@ -70,7 +69,7 @@
     </div>
 </section>
 <section class="how-section section-space" id="how-it-works"><div class="container"><div class="row gy-4 gx-lg-5"><div class="col-lg-4"><span class="eyebrow">FROM PROBLEM TO SORTED</span><h2>A repair shouldn't<br />be a project.</h2><p>We keep the process simple, so you can get back to your day.</p></div>
-<div class="col-lg-8"><div class="row g-4 steps"><div class="col-md-4"><span class="step-icon">@Ui.Icon("file")</span><h3>Tell us what's wrong</h3><p>Share a few details, your location, and a day that suits you.</p></div><div class="col-md-4"><span class="step-icon">@Ui.Icon("users")</span><h3>Find the right help</h3><p>Find a technician by skill and location, and arrange your repair.</p></div><div class="col-md-4"><span class="step-icon">@Ui.Icon("check")</span><h3>Get back to normal</h3><p>Track the job in your workspace and share a review when it's done.</p></div></div></div>
+<div class="col-lg-8"><div class="row g-4 steps"><div class="col-md-4"><span class="step-icon">@Ui.Icon("file")</span><h3>Tell us what's wrong</h3><p>Share a few details, your location, and a day that suits you.</p></div><div class="col-md-4"><span class="step-icon">@Ui.Icon("users")</span><h3>Find the right help</h3><p>A technician who handles your type of repair can accept the job.</p></div><div class="col-md-4"><span class="step-icon">@Ui.Icon("check")</span><h3>Get back to normal</h3><p>Track the job in your workspace and share a review when it's done.</p></div></div></div>
 </div></div></section>
 <section class="container technician-callout"><div><span class="eyebrow">GOOD WITH YOUR HANDS?</span><h2>Your skills belong here.</h2><p>Build your technician profile and help more people in your community.</p></div>
 @if (User.Identity?.IsAuthenticated == true)

@@ -18,6 +18,8 @@ public interface IAdminTechnicianService
         int userId,
         CancellationToken cancellationToken = default);
 
+    Task<ServiceResult> ReviewCategoriesAsync(int userId, int[] ids, bool approve, string? reason, CancellationToken ct);
+
     Task<ServiceResult> ApproveTechnicianAsync(
         int userId,
         int currentAdminId,

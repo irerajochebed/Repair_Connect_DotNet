@@ -115,6 +115,32 @@
       if (serial === state.metricsSerial) $("#admin-metrics").setAttribute("aria-busy", "false");
     }
   }
+  function actionMenu(label, actions) {
+    const group = node("div", "dropdown admin-row-actions");
+    const toggle = node("button", "btn btn-outline-primary btn-sm dropdown-toggle", "Actions");
+    toggle.type = "button";
+    toggle.dataset.bsToggle = "dropdown";
+    toggle.dataset.bsConfig = JSON.stringify({ popperConfig: { strategy: "fixed" } });
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "Actions for " + label);
+    const menu = node("div", "dropdown-menu dropdown-menu-end");
+    for (const action of actions) {
+      const button = node("button", action.danger ? "dropdown-item text-danger" : "dropdown-item", action.text);
+      button.type = "button";
+      button.setAttribute("aria-label", action.text + " · " + label);
+      button.disabled = Boolean(action.disabled);
+      button.addEventListener("click", action.run);
+      menu.append(button);
+    }
+    group.append(toggle, menu);
+    return group;
+  }
+  function rowActions(label, onEdit, onDelete, deleteDisabled = false) {
+    return actionMenu(label, [
+      { text: "Edit", run: onEdit },
+      { text: "Delete", run: onDelete, danger: true, disabled: deleteDisabled }
+    ]);
+  }
   async function loadUsers(page = state.usersPage) {
     const serial = ++state.usersSerial;
     state.usersPage = Math.max(1, page);
@@ -140,10 +166,10 @@
         const roles = node("td", "", roleNames(user.roles)); roles.dataset.label = "Role";
         const status = node("td"); status.dataset.label = "Status"; status.append(badge(accountStatus(user.status)));
         const joined = node("td", "", date(user.createdAt)); joined.dataset.label = "Joined";
-        const actions = node("td"), manage = node("button", "btn btn-quiet btn-sm", "Manage");
-        manage.type = "button"; manage.setAttribute("aria-label", "Manage " + user.displayName);
-        manage.addEventListener("click", () => openUser(user));
-        actions.append(manage); row.append(identity, roles, status, joined, actions); body.append(row);
+        const actions = node("td");
+        actions.append(rowActions(user.displayName, () => openUser(user), () => openUser(user, true),
+          isCurrentUser(user.id) || accountStatus(user.status) === "Inactive"));
+        row.append(identity, roles, status, joined, actions); body.append(row);
       });
       pagination("users", result, state.usersPage);
     } catch (error) {
@@ -172,11 +198,14 @@
         identity.append(node("strong", "", technician.displayName), node("span", "admin-secondary", technician.specialization));
         const experience = node("td", "", technician.yearsOfExperience + " years"); experience.dataset.label = "Experience";
         const documents = node("td", "", technician.documentCount); documents.dataset.label = "Documents";
-        const status = node("td"); status.dataset.label = "Verification"; status.append(badge(verification(technician.verificationStatus)));
-        const actions = node("td"), review = node("button", "btn btn-quiet btn-sm", "Review");
-        review.type = "button"; review.setAttribute("aria-label", "Review " + technician.displayName);
-        review.addEventListener("click", () => openReview(technician.userId));
-        actions.append(review); row.append(identity, experience, documents, status, actions); body.append(row);
+        const status = node("td"); status.dataset.label = "Verification"; status.append(badge(verification(technician.status)));
+        const actions = node("td");
+        actions.append(actionMenu(technician.displayName, [
+          { text: "View application", run: () => openReview(technician.userId) },
+          { text: "Approve", disabled: verification(technician.status) === "Approved", run: () => openReview(technician.userId, "approve", technician.categoryReview) },
+          { text: "Reject", danger: true, run: () => openReview(technician.userId, "reject", technician.categoryReview) }
+        ]));
+        row.append(identity, experience, documents, status, actions); body.append(row);
       });
       pagination("technicians", result, state.techniciansPage);
     } catch (error) {
@@ -207,14 +236,9 @@
         details.append(node("strong", "", category.name), node("span", "admin-secondary admin-category-description", category.description || "No description added."));
         const status = node("td"); status.dataset.label = "Status";
         status.append(badge(category.isActive ? "Active" : "Inactive"));
-        const actions = node("td"), group = node("div", "admin-category-actions");
-        const edit = node("button", "btn btn-quiet btn-sm", "Edit");
-        edit.type = "button"; edit.setAttribute("aria-label", "Edit " + category.name);
-        edit.addEventListener("click", () => openCategory(category.id));
-        const remove = node("button", "btn btn-quiet btn-sm text-danger", "Delete");
-        remove.type = "button"; remove.setAttribute("aria-label", "Delete " + category.name);
-        remove.addEventListener("click", () => openCategoryDelete(category));
-        group.append(edit, remove); actions.append(group); row.append(details, status, actions); body.append(row);
+        const actions = node("td");
+        actions.append(rowActions(category.name, () => openCategory(category.id), () => openCategoryDelete(category)));
+        row.append(details, status, actions); body.append(row);
       });
       pagination("categories", result, state.categoriesPage);
     } catch (error) {
@@ -322,17 +346,18 @@
       } else showError("#admin-category-delete-error", error);
     } finally { state.categoryDeleteBusy = false; busyButton($("#admin-category-delete-confirm"), false); }
   }
-  function openUser(user) {
+  function openUser(user, deleting = false) {
     state.managedUser = user;
     clearError("#admin-user-error");
-    $("#admin-user-title").textContent = user.displayName;
+    $("#admin-user-title").textContent = (deleting ? "Delete account · " : "Edit account · ") + user.displayName;
+    $("#admin-user-form").hidden = deleting;
     const details = node("dl", "profile-details");
     details.append(fieldRow("Email", user.email), fieldRow("Phone", user.phoneNumber), fieldRow("Role", roleNames(user.roles)), fieldRow("Joined", date(user.createdAt)));
     $("#admin-user-summary").replaceChildren(details);
     $("#admin-manage-status").value = accountStatus(user.status);
     $("#admin-self-note").hidden = !isCurrentUser(user.id);
     $("#admin-manage-status").querySelector('[value="Inactive"]').disabled = isCurrentUser(user.id);
-    $("#admin-user-danger").hidden = isCurrentUser(user.id) || accountStatus(user.status) === "Inactive";
+    $("#admin-user-danger").hidden = !deleting;
     bootstrap.Modal.getOrCreateInstance($("#admin-user-modal")).show();
   }
   async function updateUser(event) {
@@ -359,7 +384,6 @@
   async function deactivateUser() {
     if (state.userBusy || !state.managedUser || isCurrentUser(state.managedUser.id)) return;
     const user = state.managedUser;
-    if (!confirm("Deactivate " + user.displayName + "? They will lose account access; their records will be kept.")) return;
     state.userBusy = true; clearError("#admin-user-error");
     toggleForm($("#admin-user-form"), true); busyButton($("#admin-user-deactivate"), true, "Deactivating…");
     try {
@@ -405,6 +429,7 @@
       displayName: $("#admin-create-name").value.trim(),
       email: $("#admin-create-email").value.trim(),
       phoneNumber: $("#admin-create-phone").value.trim() || null,
+      dateOfBirth: $("#admin-create-dob").value || null,
       password: $("#admin-create-password").value
     };
     const serial = ++state.createSerial;
@@ -437,9 +462,10 @@
     details.append(
       fieldRow("Email", technician.email), fieldRow("Phone", technician.phoneNumber),
       fieldRow("Experience", technician.yearsOfExperience + " years"), fieldRow("Service area", technician.address),
-      fieldRow("Verification", verification(technician.verificationStatus)),
+      fieldRow("Verification", verification(technician.status)),
       fieldRow("Services", (technician.categories || []).join(", "))
     );
+    if (technician.pendingCategories?.length) details.append(fieldRow("Categories awaiting approval", technician.pendingCategories.map(c => c.name).join(", ")));
     if (technician.reviewedByName) details.append(fieldRow("Reviewed by", technician.reviewedByName), fieldRow("Reviewed on", date(technician.reviewedAt)));
     host.replaceChildren(header);
     if (technician.bio) host.append(node("p", "admin-review-bio", technician.bio));
@@ -447,7 +473,7 @@
     if (technician.rejectionReason) host.append(node("p", "info-strip mt-3", "Rejection reason: " + technician.rejectionReason));
     host.append(node("h4", "admin-section-title", "Supporting documents"));
     const documents = technician.documents || [];
-    if (!documents.length) host.append(node("p", "admin-document-note", "No supporting documents have been added. A technician needs at least one document before approval."));
+    if (!documents.length) host.append(node("p", "admin-document-note", "No supporting documents have been added."));
     else {
       const list = node("ul", "admin-document-list");
       documents.forEach(document => {
@@ -463,27 +489,36 @@
     }
     host.hidden = false;
     $("#admin-review-actions").hidden = false;
-    $("#admin-review-approve").disabled = documents.length === 0 || verification(technician.verificationStatus) === "Approved";
-    $("#admin-review-approve").textContent = verification(technician.verificationStatus) === "Approved" ? "Already approved" : "Approve technician";
+    $("#admin-review-approve").disabled = !technician.pendingCategories?.length && verification(technician.status) === "Approved";
+    $("#admin-review-reject").textContent = technician.pendingCategories?.length ? "Reject requested categories" : "Reject application";
+    $("#admin-review-approve").textContent = technician.pendingCategories?.length ? "Approve requested categories" : verification(technician.status) === "Approved" ? "Already approved" : "Approve technician";
   }
-  async function openReview(userId) {
+  async function openReview(userId, action = "view", categoryReview = false) {
     const serial = ++state.reviewSerial;
     state.technician = null;
     $("#admin-review-loading").hidden = false; $("#admin-review-content").hidden = true;
     $("#admin-review-actions").hidden = true; $("#admin-reject-form").hidden = true;
-    $("#admin-reject-reason").value = ""; clearError("#admin-review-error");
+    $("#admin-reject-reason").value = ""; $("#admin-reject-reason").setCustomValidity(""); clearError("#admin-review-error");
     bootstrap.Modal.getOrCreateInstance($("#admin-review-modal")).show();
     try {
       const technician = await api().get("/api/admin/technicians/" + userId);
       if (serial !== state.reviewSerial) return;
       state.technician = technician; renderReview(technician);
+      if (categoryReview !== Boolean(technician.pendingCategories?.length)) return;
+      if (action === "reject") showRejectionForm();
+      if (action === "approve" && !categoryReview && verification(technician.status) !== "Approved") await decideTechnician(true);
     } catch (error) {
       if (serial !== state.reviewSerial) return;
       showError("#admin-review-error", error);
       const retry = node("button", "btn btn-quiet btn-sm mt-2", "Try again");
-      retry.type = "button"; retry.addEventListener("click", () => openReview(userId));
+      retry.type = "button"; retry.addEventListener("click", () => openReview(userId, action, categoryReview));
       $("#admin-review-error").append(retry);
     } finally { if (serial === state.reviewSerial) $("#admin-review-loading").hidden = true; }
+  }
+  function showRejectionForm() {
+    $("#admin-reject-form").hidden = false;
+    $("#admin-review-actions").hidden = true;
+    $("#admin-reject-reason").focus();
   }
   async function decideTechnician(approve) {
     if (state.reviewBusy || !state.technician) return;
@@ -496,16 +531,20 @@
     const button = approve ? $("#admin-review-approve") : $("#admin-reject-submit");
     busyButton(button, true, approve ? "Approving…" : "Rejecting…");
     try {
-      await api().put("/api/admin/technicians/" + technician.userId + (approve ? "/approve" : "/reject"), approve ? undefined : { reason });
+      if (technician.pendingCategories?.length) {
+        await api().put("/api/admin/technicians/" + technician.userId + "/category-review", {
+          categoryIds: technician.pendingCategories.map(c => c.id), approve, reason
+        });
+      } else await api().put("/api/admin/technicians/" + technician.userId + (approve ? "/approve" : "/reject"), approve ? undefined : { reason });
       state.reviewBusy = false;
       bootstrap.Modal.getInstance($("#admin-review-modal"))?.hide();
-      toast(approve ? "Technician approved." : "Application rejected.");
+      toast(technician.pendingCategories?.length ? "Category review saved." : approve ? "Technician approved." : "Application rejected.");
       await Promise.all([loadTechnicians(), loadMetrics()]);
     } catch (error) { showError("#admin-review-error", error); }
     finally {
       state.reviewBusy = false; toggleForm($("#admin-reject-form"), false); busyButton(button, false);
       $("#admin-review-reject").disabled = false;
-      $("#admin-review-approve").disabled = !technician.documents?.length || verification(technician.verificationStatus) === "Approved";
+      $("#admin-review-approve").disabled = !technician.pendingCategories?.length && verification(technician.status) === "Approved";
     }
   }
   function bind() {
@@ -552,9 +591,7 @@
     $("#admin-user-form").addEventListener("submit", updateUser);
     $("#admin-user-deactivate").addEventListener("click", deactivateUser);
     $("#admin-review-approve").addEventListener("click", () => decideTechnician(true));
-    $("#admin-review-reject").addEventListener("click", () => {
-      $("#admin-reject-form").hidden = false; $("#admin-review-actions").hidden = true; $("#admin-reject-reason").focus();
-    });
+    $("#admin-review-reject").addEventListener("click", showRejectionForm);
     $("#admin-reject-cancel").addEventListener("click", () => { $("#admin-reject-form").hidden = true; $("#admin-review-actions").hidden = false; });
     $("#admin-reject-reason").addEventListener("input", () => $("#admin-reject-reason").setCustomValidity(""));
     $("#admin-reject-form").addEventListener("submit", event => { event.preventDefault(); decideTechnician(false); });

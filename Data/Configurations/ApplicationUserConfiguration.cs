@@ -30,14 +30,17 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .IsUnique();
 
         builder.Property(u => u.PasswordHash)
+            .HasColumnName("Password")
             .HasMaxLength(255)
             .IsRequired();
 
         builder.Property(u => u.DisplayName)
+            .HasColumnName("Username")
             .HasMaxLength(100)
             .IsRequired();
 
         builder.Property(u => u.PhoneNumber)
+            .HasColumnName("Phone")
             .HasMaxLength(20);
 
         builder.Property(u => u.Roles)

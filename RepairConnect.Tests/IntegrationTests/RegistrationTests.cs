@@ -62,10 +62,11 @@ public sealed class RegistrationTests : IDisposable
         using var client = NewClient();
         await TokenAsync(client);
         var request = Request("  NewClient@tests.invalid  ");
+        request["dateOfBirth"] = "2000-04-16";
         request["displayName"] = "  New Client  "; request["phoneNumber"] = "  0780000001  ";
         request["role"] = "Admin"; request["roles"] = "Admin, Technician"; request["status"] = "Inactive";
         request["isAdmin"] = true; request["specialization"] = "Forged technician";
-        request["technicianProfile"] = new { verificationStatus = "Approved", availabilityStatus = "Available" };
+        request["technicianProfile"] = new { status = "Approved", availabilityStatus = "Available" };
         var response = await client.PostAsJsonAsync("/api/auth/register", request);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         AssertSafeAccount(await response.Content.ReadFromJsonAsync<JsonElement>(), "NewClient@tests.invalid");
@@ -77,6 +78,7 @@ public sealed class RegistrationTests : IDisposable
         var me = await client.GetFromJsonAsync<JsonElement>("/api/auth/me");
         Assert.Equal(user.Id, me.GetProperty("id").GetInt32());
         AssertSafeAccount(me, "NewClient@tests.invalid");
+        Assert.Equal("2000-04-16", me.GetProperty("dateOfBirth").GetString());
         Assert.Contains("<span data-greeting-name>New Client</span>", await client.GetStringAsync("/Dashboard"));
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/admin/users")).StatusCode);
         await TokenAsync(client);

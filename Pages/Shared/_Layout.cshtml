@@ -21,7 +21,7 @@
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
         <nav class="navbar navbar-expand-lg container @(backoffice ? "admin-navbar-container" : null)" aria-label="Main navigation">
-            <a class="brand" asp-page="/Index"><span class="brand-symbol">@Ui.Icon("tool")</span><span>Repair<span class="brand-accent">Connect</span><small>HOME REPAIRS, SIMPLIFIED</small></span></a>
+            <a class="brand" asp-page="/Index">Repair<span class="brand-accent">Connect</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">@Ui.Icon("menu")</button>
             <div class="collapse navbar-collapse" id="main-nav">
                 <div class="navbar-nav mx-auto">
@@ -37,6 +37,10 @@
                             <button class="btn btn-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="account-menu">@Ui.Icon("user") Account</button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="account-menu">
                                 <li><a class="dropdown-item" asp-page="/Dashboard">My account</a></li>
+                                @if (!User.IsInRole("Admin"))
+                                {
+                                    <li><a class="dropdown-item" asp-page="/Dashboard" asp-route-panel="technician">Technician application</a></li>
+                                }
                                 <li><button class="dropdown-item" type="button" data-logout>Sign out</button></li>
                             </ul>
                         </div>
@@ -58,7 +62,7 @@
     {
     <footer class="site-footer">
         <div class="container footer-main">
-            <div><a class="brand footer-brand" asp-page="/Index"><span class="brand-symbol">@Ui.Icon("tool")</span><span>RepairConnect</span></a><p>A little help for the place you call home.</p></div>
+            <a class="brand footer-brand" asp-page="/Index">Repair<span class="brand-accent">Connect</span></a>
             <div class="footer-links">
                 <a asp-page="/Explore">Find help</a>
                 @if (User.Identity?.IsAuthenticated == true)
@@ -72,7 +76,7 @@
                 <button type="button" data-bs-toggle="modal" data-bs-target="#privacy-modal">Privacy</button>
             </div>
         </div>
-        <div class="container footer-bottom"><span>© @DateTime.UtcNow.Year RepairConnect</span><span>Made for better everyday living.</span></div>
+        <div class="container footer-bottom"><span>© @DateTime.UtcNow.Year RepairConnect</span></div>
     </footer>
     }
     @if (User.Identity?.IsAuthenticated == true)

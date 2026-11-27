@@ -112,7 +112,9 @@
         $("#technician-application-title").setAttribute("tabindex", "-1");
         $("#technician-application-title").focus({ preventScroll: true });
         application.scrollIntoView({ block: "start" });
+        return;
       }
+      if (application) return;
       params.delete("panel");
       history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
       return;
@@ -121,11 +123,7 @@
       params.delete("panel");
       history.replaceState(null, "", location.pathname + (params.size ? "?" + params : "") + location.hash);
     }
-    const target = params.get("new") === "1" ? $("#unavailable-modal") : null;
-    if (target) {
-      bootstrap.Modal.getOrCreateInstance(target).show();
-      history.replaceState(null, "", location.pathname + location.hash);
-    }
+
   }
   function clearPasswords(form) {
     form?.querySelectorAll('input[autocomplete="current-password"],input[autocomplete="new-password"]').forEach(input => {
@@ -205,6 +203,7 @@
             $("#confirm-password").focus(); return;
           }
           const payload = { displayName: $("#register-name").value.trim(), email: $("#register-email").value.trim(), phoneNumber: $("#register-phone").value.trim() || null,
+            dateOfBirth: $("#register-dob").value || null,
             password: $("#register-password").value };
           ++sessionGeneration;
           const submit = $("#register-submit");
@@ -258,13 +257,6 @@
     $("#session-retry")?.addEventListener("click", loadSession);
     $("#profile-retry")?.addEventListener("click", loadSession);
     document.addEventListener("repair:session-expired", goToSignIn);
-    // Keep unavailable workflows honest instead of making browser-only records.
-    $("#quick-request-form")?.addEventListener("submit", event => {
-      event.preventDefault(); toast("Repair requests are not available yet.");
-    });
-    $$('a[href*="new=1"]').forEach(link => link.addEventListener("click", event => {
-      event.preventDefault(); toast("Repair requests are not available yet.");
-    }));
     await loadSession();
     if (!currentUser) openRequestedDialog();
   }

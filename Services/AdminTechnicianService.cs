@@ -33,7 +33,8 @@ public class AdminTechnicianService : IAdminTechnicianService
         var query = _context.TechnicianProfiles
             .Include(tp => tp.User)
             .Include(tp => tp.Documents)
-            .Where(tp => tp.VerificationStatus == targetStatus);
+            .Where(tp => (tp.Status == VerificationStatus.Approved && tp.Categories.Any(c => c.ReviewStatus == VerificationStatus.Pending)
+                ? VerificationStatus.Pending : tp.Status) == targetStatus);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -55,7 +56,8 @@ public class AdminTechnicianService : IAdminTechnicianService
                 DisplayName = tp.User.DisplayName,
                 Specialization = tp.Specialization,
                 YearsOfExperience = tp.YearsOfExperience,
-                VerificationStatus = tp.VerificationStatus,
+                Status = targetStatus,
+                CategoryReview = tp.Status == VerificationStatus.Approved && targetStatus == VerificationStatus.Pending,
                 DocumentCount = tp.Documents.Count,
                 CreatedAt = tp.CreatedAt
             })
@@ -92,11 +94,13 @@ public class AdminTechnicianService : IAdminTechnicianService
             Bio = profile.Bio,
             YearsOfExperience = profile.YearsOfExperience,
             Address = profile.Address ?? profile.User.Address,
-            VerificationStatus = profile.VerificationStatus,
+            Status = profile.Status,
             RejectionReason = profile.RejectionReason,
             ReviewedByName = profile.ReviewedByUser?.DisplayName,
             ReviewedAt = profile.ReviewedAt,
-            Categories = profile.Categories.Select(c => c.Category.Name).ToList(),
+            PendingCategories = profile.Categories.Where(c => c.ReviewStatus == VerificationStatus.Pending)
+                .Select(c => new ApplicationCategoryVm { Id = c.CategoryId, Name = c.Category.Name, Status = VerificationStatus.Pending }).ToList(),
+            Categories = profile.Categories.Where(c => c.ReviewStatus == null).Select(c => c.Category.Name).ToList(),
             Documents = profile.Documents.Select(d => new DocumentVm
             {
                 Id = d.Id,
@@ -109,6 +113,30 @@ public class AdminTechnicianService : IAdminTechnicianService
         return ServiceResult<TechnicianReviewVm>.Success(vm);
     }
 
+    private Task<bool> HasPendingCategories(int userId, CancellationToken ct) =>
+        _context.TechnicianCategories.AnyAsync(c => c.TechnicianUserId == userId && c.ReviewStatus == VerificationStatus.Pending, ct);
+
+    public async Task<ServiceResult> ReviewCategoriesAsync(int userId, int[] ids, bool approve, string? reason, CancellationToken ct)
+    {
+        var requested = ids.Distinct().ToArray();
+        if (requested.Length == 0 || (!approve && (string.IsNullOrWhiteSpace(reason) || reason.Trim().Length > 2000)))
+            return ServiceResult.Failure("Select requested categories and give a reason for rejection.");
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        var links = await _context.TechnicianCategories.Where(c => c.TechnicianUserId == userId &&
+            c.Technician.Status == VerificationStatus.Approved && (!approve || c.Technician.User.Status == UserStatus.Active) &&
+            requested.Contains(c.CategoryId) && c.ReviewStatus == VerificationStatus.Pending).ToListAsync(ct);
+        if (links.Count != requested.Length)
+            return ServiceResult.Failure("The application has changed. Refresh before reviewing.", ServiceErrorType.Conflict);
+        foreach (var link in links)
+        {
+            link.ReviewStatus = approve ? null : VerificationStatus.Rejected;
+            link.RejectionReason = approve ? null : reason!.Trim();
+        }
+        await _context.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return ServiceResult.Success();
+    }
+
     public async Task<ServiceResult> ApproveTechnicianAsync(
         int userId,
         int currentAdminId,
@@ -117,7 +145,6 @@ public class AdminTechnicianService : IAdminTechnicianService
         await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var profile = await _context.TechnicianProfiles
             .Include(tp => tp.User)
-            .Include(tp => tp.Documents)
             .FirstOrDefaultAsync(tp => tp.UserId == userId, cancellationToken);
 
         if (profile == null)
@@ -125,19 +152,14 @@ public class AdminTechnicianService : IAdminTechnicianService
             return ServiceResult.NotFound("Technician profile not found.");
         }
 
-        if (profile.Documents.Count == 0)
-        {
-            return ServiceResult.Failure(
-                "Technician cannot be approved without uploaded documents.",
-                ServiceErrorType.BadRequest);
-        }
+        if (await HasPendingCategories(userId, cancellationToken)) return ServiceResult.Failure("Review the requested categories separately.", ServiceErrorType.Conflict);
 
         if (profile.User.Status != UserStatus.Active)
         {
             return ServiceResult.Failure("Activate the applicant's account before approving it.");
         }
 
-        profile.VerificationStatus = VerificationStatus.Approved;
+        profile.Status = VerificationStatus.Approved;
         profile.User.Roles |= UserRoles.Client | UserRoles.Technician;
         profile.ReviewedByUserId = currentAdminId;
         profile.ReviewedAt = DateTime.UtcNow;
@@ -171,7 +193,9 @@ public class AdminTechnicianService : IAdminTechnicianService
             return ServiceResult.NotFound("Technician profile not found.");
         }
 
-        profile.VerificationStatus = VerificationStatus.Rejected;
+        if (await HasPendingCategories(userId, cancellationToken)) return ServiceResult.Failure("Review the requested categories separately.", ServiceErrorType.Conflict);
+
+        profile.Status = VerificationStatus.Rejected;
         profile.AvailabilityStatus = AvailabilityStatus.Offline;
         profile.User.Roles = (profile.User.Roles | UserRoles.Client) & ~UserRoles.Technician;
         profile.RejectionReason = reason.Trim();

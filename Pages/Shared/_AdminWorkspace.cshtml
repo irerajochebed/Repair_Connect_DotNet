@@ -1,12 +1,12 @@
 <section id="admin-workspace" class="admin-shell" aria-label="Administration workspace" hidden>
     <aside class="offcanvas-lg offcanvas-start admin-sidebar" tabindex="-1" id="admin-sidebar" aria-labelledby="admin-navigation-title">
-        <a class="brand admin-sidebar-brand d-none d-lg-flex" asp-page="/Index"><span class="brand-symbol">@Ui.Icon("tool")</span><span>Repair<span class="brand-accent">Connect</span><small>HOME REPAIRS, SIMPLIFIED</small></span></a>
+        <a class="brand admin-sidebar-brand d-none d-lg-flex" asp-page="/Index">Repair<span class="brand-accent">Connect</span></a>
         <div class="admin-sidebar-heading"><div><span>WORKSPACE</span><h2 id="admin-navigation-title">Administration</h2></div><button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#admin-sidebar" aria-label="Close workspace menu"></button></div>
         <div class="offcanvas-body">
             <div class="admin-tabs" role="tablist" aria-label="Administration sections" aria-orientation="vertical">
                 <button class="active" id="admin-dashboard-tab" type="button" role="tab" aria-selected="true" aria-controls="admin-dashboard-panel" data-bs-toggle="tab" data-bs-target="#admin-dashboard-panel" data-section-label="Dashboard">@Ui.Icon("home")<span>Dashboard</span></button>
                 <button id="admin-users-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-users-panel" data-bs-toggle="tab" data-bs-target="#admin-users-panel" data-section-label="Users">@Ui.Icon("users")<span>Users</span></button>
-                <button id="admin-technicians-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-technicians-panel" data-bs-toggle="tab" data-bs-target="#admin-technicians-panel" data-section-label="Technician approvals">@Ui.Icon("shield")<span>Technician approvals</span></button>
+                <button id="admin-technicians-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-technicians-panel" data-bs-toggle="tab" data-bs-target="#admin-technicians-panel" data-section-label="Technician applications">@Ui.Icon("shield")<span>Technician applications</span></button>
                 <button id="admin-categories-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-categories-panel" data-bs-toggle="tab" data-bs-target="#admin-categories-panel" data-section-label="Service categories">@Ui.Icon("tool")<span>Service categories</span></button>
             </div>
             <a class="admin-home-link" asp-page="/Index">@Ui.Icon("home")<span>Back to home</span></a>
@@ -81,8 +81,9 @@
     <div class="modal-body"><p class="admin-modal-intro" id="admin-create-intro">Create a client account for repair services.</p>
         <form id="admin-create-form" class="admin-create-form">
             <div class="admin-form-error" id="admin-create-error" role="alert" hidden></div>
-            <div><label class="form-label" for="admin-create-name">Full name *</label><input class="form-control" id="admin-create-name" name="displayName" required maxlength="100" pattern=".*\S.*" autocomplete="name" /><div class="invalid-feedback" id="admin-create-name-error"></div></div>
+            <div><label class="form-label" for="admin-create-name">Username *</label><input class="form-control" id="admin-create-name" name="displayName" required maxlength="100" pattern=".*\S.*" autocomplete="name" /><div class="invalid-feedback" id="admin-create-name-error"></div></div>
             <div><label class="form-label" for="admin-create-phone">Phone <span class="optional">(optional)</span></label><input class="form-control" id="admin-create-phone" name="phoneNumber" type="tel" maxlength="20" autocomplete="off" /><div class="invalid-feedback" id="admin-create-phone-error"></div></div>
+            <div><label class="form-label" for="admin-create-dob">Date of birth (optional)</label><input class="form-control" id="admin-create-dob" name="dateOfBirth" type="date" /></div>
             <div class="admin-create-email-field"><label class="form-label" for="admin-create-email">Email address *</label><input class="form-control" id="admin-create-email" name="email" type="email" required maxlength="256" autocomplete="off" /><div class="invalid-feedback" id="admin-create-email-error"></div></div>
             <div class="admin-create-password-field"><label class="form-label" for="admin-create-password">Password *</label><input class="form-control" id="admin-create-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="admin-password-hint" /><div class="field-hint" id="admin-password-hint">Use at least 8 characters.</div><div class="invalid-feedback" id="admin-create-password-error"></div></div>
             <div class="form-actions"><button class="btn btn-quiet" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit" id="admin-create-submit">Create user</button></div>

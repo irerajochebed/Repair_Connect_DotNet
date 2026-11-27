@@ -7,8 +7,8 @@
   const form = $("#technician-application-form");
   const state = { user: null, profile: null, serial: 0, busy: false, bound: false, categories: [] };
   const api = () => window.RepairApi;
-  const fields = { specialization: "specialization", categoryid: "category", yearsofexperience: "experience", bio: "bio", address: "address", document: "document" };
-  const hints = { category: "application-category-hint", document: "application-document-hint" };
+  const fields = { specialization: "specialization", categoryid: "category", categoryids: "category", yearsofexperience: "experience", bio: "bio", address: "address", document: "document" };
+  const hints = { category: "application-category-hint" };
   const node = (tag, text) => { const element = document.createElement(tag); if (text !== undefined) element.textContent = String(text); return element; };
   const statusName = value => typeof value === "number" ? ["Pending", "Approved", "Rejected"][value] || "Unknown" : String(value || "Unknown");
   function isAdmin(user) {
@@ -37,11 +37,12 @@
       if (field) fieldError(field, Array.isArray(messages) ? messages.join(" ") : String(messages));
     }
   }
+  function addingCategories() { return statusName(state.profile?.status) === "Approved"; }
   function setBusy(busy) {
     state.busy = busy; form.setAttribute("aria-busy", String(busy));
-    form.querySelectorAll("input,select,textarea,button").forEach(control => { control.disabled = busy; });
+    form.querySelectorAll("input,select,textarea,button").forEach(control => { control.disabled = busy || Boolean(control.closest("[data-category-hidden]")); });
     $("#application-submit").disabled = busy || !state.categories.length;
-    $("#application-submit").textContent = busy ? "Submitting…" : state.profile ? "Resubmit application" : "Submit application";
+    $("#application-submit").textContent = busy ? "Submitting…" : addingCategories() ? "Request approval" : state.profile ? "Resubmit application" : "Submit application";
   }
   function loading(busy, message = "Loading your application…") {
     $("#application-loading").hidden = !busy; $("#application-loading").textContent = message;
@@ -51,18 +52,25 @@
     const row = node("div"); row.append(node("dt", label), node("dd", value || "Not provided")); return row;
   }
   function renderStatus() {
-    const profile = state.profile, status = statusName(profile.verificationStatus);
+    const profile = state.profile, status = statusName(profile.status);
+    $("#technician-application-title").textContent = "Technician application";
+    $("#application-status").open = false;
     $("#application-status").hidden = false; form.hidden = true;
-    const badge = $("#application-status-badge"); badge.textContent = status;
+    const badge = $("#application-status-badge");
+    const pending = (profile.categories || []).filter(c => statusName(c.status) === "Pending");
+    badge.textContent = status === "Approved" && pending.length ? "Approved · New categories pending" : status;
     badge.className = "status-badge " + (status === "Approved" ? "success" : status === "Pending" ? "warning" : "neutral");
     $("#application-status-message").textContent = {
       Pending: "Your application is awaiting administrator review. You can keep using your client account.",
       Approved: "Your application has been approved. Technician access is included in your account.",
-      Rejected: "Update your application and upload a supporting document to send it for review again."
+      Rejected: "Update your application and send it for review again."
     }[status] || "Your application status is unavailable. Please try again.";
     const details = $("#application-details");
-    details.replaceChildren(detail("Specialization", profile.specialization), detail("Service category", (profile.categories || []).map(category => category.name).join(", ")),
+    details.replaceChildren(detail("Specialization", profile.specialization), 
       detail("Experience", Number(profile.yearsOfExperience) + " years"), detail("Address", profile.address));
+    for (const category of profile.categories || []) {
+      details.append(detail(category.name, statusName(category.status) + (category.rejectionReason ? " · " + category.rejectionReason : "")));
+    }
     if (profile.bio) details.append(detail("About your work", profile.bio));
     if (profile.reviewedAt) {
       const reviewed = new Date(profile.reviewedAt);
@@ -70,7 +78,8 @@
     }
     $("#application-rejection").hidden = status !== "Rejected" || !profile.rejectionReason;
     $("#application-rejection-reason").textContent = profile.rejectionReason || "";
-    $("#application-edit").hidden = status !== "Rejected";
+    $("#application-edit").hidden = status === "Pending";
+    $("#application-edit").textContent = status === "Approved" ? "Add categories" : "Update and resubmit";
     const documents = $("#application-document-list"); documents.replaceChildren();
     for (const document of profile.documents || []) {
       const item = node("li"); let url;
@@ -87,25 +96,41 @@
   async function showEditor(serial = ++state.serial) {
     if (!state.user || state.busy) return;
     clearErrors(); $("#application-retry").hidden = true;
+    $("#technician-application-title").textContent = addingCategories() ? "Add service categories" : state.profile ? "Update application" : "Become a technician";
     $("#application-status").hidden = true; form.hidden = true; loading(true, "Loading service categories…");
     try {
       const categories = await api().get("/api/categories");
       if (serial !== state.serial) return;
       state.categories = (Array.isArray(categories) ? categories : []).filter(category => category.isActive !== false);
-      const select = $("#application-category"); select.replaceChildren();
-      const placeholder = node("option", "Choose a category"); placeholder.value = ""; select.append(placeholder);
-      for (const category of state.categories) { const option = node("option", category.name); option.value = String(category.id); select.append(option); }
       form.reset();
       const profile = state.profile;
+      for (const field of form.querySelectorAll(":scope > div:not(.service-field):not(.form-actions)")) {
+        field.hidden = addingCategories();
+        field.toggleAttribute("data-category-hidden", addingCategories());
+      }
+      if (addingCategories()) {
+        const existing = new Set(profile.categories.filter(c => statusName(c.status) !== "Rejected").map(c => c.id));
+        state.categories = state.categories.filter(c => !existing.has(c.id));
+      }
+      const selected = new Set((profile?.categories || []).map(c => c.id));
+      const list = $("#application-options");
+      list.replaceChildren();
+      for (const category of state.categories) {
+        const label = node("label");
+        const input = node("input");
+        input.type = "checkbox"; input.name = "categoryIds"; input.value = category.id;
+        input.checked = !addingCategories() && selected.has(category.id);
+        label.append(input, node("span", category.name)); list.append(label);
+      }
+      $("#application-services").open = false;
+      refreshPicker();
       if (profile) {
         $("#application-specialization").value = profile.specialization || "";
         $("#application-experience").value = String(profile.yearsOfExperience ?? "");
         $("#application-address").value = profile.address || ""; $("#application-bio").value = profile.bio || "";
-        const categoryId = profile.categories?.[0]?.id;
-        select.value = categoryId === undefined ? "" : String(categoryId);
-        if (!select.value) select.value = "";
+
       }
-      $("#application-category-hint").textContent = state.categories.length ? "" : "No service categories are available yet. Please check back later.";
+      $("#application-category-hint").textContent = !state.categories.length ? "No service categories are available yet." : statusName(profile?.status) === "Approved" ? "Your approved services stay available while new categories are reviewed." : "";
       $("#application-cancel").hidden = !profile; form.hidden = false; setBusy(false);
     } catch (error) { if (serial === state.serial) showError(error, true); }
     finally { if (serial === state.serial) loading(false); }
@@ -131,24 +156,36 @@
     clearErrors();
     if (!form.reportValidity()) return;
     const file = $("#application-document").files[0];
-    if (!file || !/\.(pdf|jpe?g|png)$/i.test(file.name) || file.size > 5 * 1024 * 1024 || file.size === 0) {
+    if (file && (!/\.(pdf|jpe?g|png)$/i.test(file.name) || file.size > 5 * 1024 * 1024 || file.size === 0)) {
       fieldError("document", "Choose a PDF, JPG or PNG file up to 5 MB."); $("#application-document").focus(); return;
     }
-    if (!state.categories.some(category => String(category.id) === $("#application-category").value)) {
-      fieldError("category", "Choose an available service category."); $("#application-category").focus(); return;
+    const checked = form.querySelectorAll('[name="categoryIds"]:checked');
+    if (!checked.length) {
+      fieldError("category", "Choose at least one service category.");
+      $("#application-services").open = true; $("#application-search").focus(); return;
     }
     const payload = new FormData();
     payload.append("specialization", $("#application-specialization").value.trim());
-    payload.append("categoryId", $("#application-category").value);
+    for (const option of checked) payload.append("categoryIds", option.value);
     payload.append("yearsOfExperience", String(Number($("#application-experience").value)));
-    for (const field of ["bio", "address"]) { const value = $("#application-" + field).value.trim(); if (value) payload.append(field, value); }
-    payload.append("document", file);
+    for (const field of addingCategories() ? [] : ["bio", "address"]) {
+      const value = $("#application-" + field).value.trim();
+      if (!value) {
+        fieldError(field, field === "bio" ? "Describe your work." : "Enter your address.");
+        $("#application-" + field).focus();
+        return;
+      }
+      payload.append(field, value);
+    }
+    if (file) payload.append("document", file);
     const serial = state.serial; setBusy(true);
     try {
-      const result = await api().postForm("/api/technician-application", payload);
+      const result = addingCategories()
+        ? await api().post("/api/technician-application/categories", { categoryIds: [...checked].map(option => Number(option.value)) })
+        : await api().postForm("/api/technician-application", payload);
       if (serial !== state.serial) return;
       state.profile = result; form.reset(); renderStatus();
-      window.RepairUi?.toast?.("Application submitted for review."); $("#application-status-badge").setAttribute("tabindex", "-1"); $("#application-status-badge").focus();
+      window.RepairUi?.toast?.("Application submitted for review."); $("#application-status summary").focus();
     } catch (error) {
       if (serial !== state.serial) return;
       showError(error);
@@ -160,9 +197,32 @@
       }
     }
   }
+  function refreshPicker() {
+    const term = $("#application-search").value.trim().toLowerCase();
+    const names = [];
+    const labels = [...$("#application-options").children];
+    for (const label of labels) {
+      label.hidden = !label.textContent.toLowerCase().includes(term);
+      if (label.querySelector("input").checked) names.push(label.textContent);
+    }
+    $("#application-selection").textContent = names.join(", ") || "Choose categories";
+    $("#application-no-match").hidden = labels.some(label => !label.hidden);
+  }
   function bind() {
     if (state.bound) return;
     state.bound = true; form.addEventListener("submit", submitApplication);
+    const picker = $("#application-services"), search = $("#application-search");
+    search.addEventListener("input", refreshPicker);
+    picker.addEventListener("change", refreshPicker);
+    picker.addEventListener("toggle", () => {
+      if (picker.open) search.focus();
+      else { search.value = ""; refreshPicker(); }
+    });
+    picker.addEventListener("keydown", event => {
+      if (event.key === "Enter" && event.target === search) event.preventDefault();
+      if (event.key === "Escape") { picker.open = false; $("#application-category").focus(); }
+    });
+    document.addEventListener("click", event => { if (!picker.contains(event.target)) picker.open = false; });
     $("#application-retry").addEventListener("click", loadApplication);
     $("#application-edit").addEventListener("click", () => showEditor());
     $("#application-cancel").addEventListener("click", () => { if (!state.busy && state.profile) { state.serial++; form.reset(); clearErrors(); renderStatus(); } });

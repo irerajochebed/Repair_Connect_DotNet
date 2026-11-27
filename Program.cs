@@ -160,7 +160,7 @@ app.MapGet("/Services", (HttpRequest request) => RedirectPreview(request, "/Expl
 app.MapGet("/Technicians", (HttpRequest request) => RedirectPreview(request, "/Explore"));
 app.MapGet("/Login", () => Results.Redirect("/Account"));
 app.MapGet("/Register", () => Results.Redirect("/Account?mode=access"));
-app.MapGet("/NewRequest", (HttpRequest request) => RedirectPreview(request, "/Dashboard?new=1"));
+app.MapGet("/NewRequest", (HttpRequest request) => RedirectPreview(request, "/Explore"));
 app.MapGet("/Profile", () => Results.Redirect("/Dashboard"));
 app.MapGet("/ApplyTechnician", () => Results.Redirect("/Dashboard?panel=technician"));
 app.MapGet("/Privacy", () => Results.Redirect("/?privacy=1"));

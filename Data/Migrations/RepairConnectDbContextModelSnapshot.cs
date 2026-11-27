@@ -38,10 +38,14 @@ namespace RepairConnect.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Username");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -56,11 +60,13 @@ namespace RepairConnect.Data.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("Password");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Phone");
 
                     b.Property<int>("Roles")
                         .HasColumnType("int");
@@ -272,6 +278,14 @@ namespace RepairConnect.Data.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("ReviewStatus")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
                     b.HasKey("TechnicianUserId", "CategoryId");
 
                     b.HasIndex("CategoryId");
@@ -348,7 +362,7 @@ namespace RepairConnect.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("VerificationStatus")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(16)
@@ -366,7 +380,7 @@ namespace RepairConnect.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_TechnicianProfiles_AvailabilityStatus", "[AvailabilityStatus] IN (N'Available', N'Busy', N'Offline')");
 
-                            t.HasCheckConstraint("CK_TechnicianProfiles_VerificationStatus", "[VerificationStatus] IN (N'Pending', N'Approved', N'Rejected')");
+                            t.HasCheckConstraint("CK_TechnicianProfiles_Status", "[Status] IN (N'Pending', N'Approved', N'Rejected')");
 
                             t.HasCheckConstraint("CK_TechnicianProfiles_YearsOfExperience", "[YearsOfExperience] >= 0");
                         });

@@ -33,18 +33,31 @@ public sealed class TechnicianApplicationService(
             return ServiceResult<TechnicianApplicationSubmission>.Failure("A signed-in client account is required.", ServiceErrorType.Forbidden);
 
         var profile = await Profiles().SingleOrDefaultAsync(profile => profile.UserId == userId, cancellationToken);
-        if (profile != null && profile.VerificationStatus != VerificationStatus.Rejected)
-            return ServiceResult<TechnicianApplicationSubmission>.Failure("Your existing application is pending or has already been approved.", ServiceErrorType.Conflict);
+        if (profile?.Status == VerificationStatus.Pending)
+            return ServiceResult<TechnicianApplicationSubmission>.Failure("Your application is already pending.", ServiceErrorType.Conflict);
 
-        var category = await context.ServiceCategories.SingleOrDefaultAsync(category => category.Id == request.CategoryId && category.IsActive, cancellationToken);
-        if (category == null) return ServiceResult<TechnicianApplicationSubmission>.Failure("Choose an active service category.");
+        var ids = request.CategoryIds.ToHashSet();
+        if (request.CategoryId.HasValue) ids.Add(request.CategoryId.Value);
+        if (ids.Count == 0)
+            return ServiceResult<TechnicianApplicationSubmission>.Failure("Choose at least one service category.");
+        var categories = await context.ServiceCategories.Where(c => ids.Contains(c.Id) && c.IsActive).ToListAsync(cancellationToken);
+        if (categories.Count != ids.Count)
+            return ServiceResult<TechnicianApplicationSubmission>.Failure("Choose active service categories.");
 
-        var savedDocument = await storage.SaveAsync(userId, request.Document!, cancellationToken);
-        if (!savedDocument.Succeeded)
-            return ServiceResult<TechnicianApplicationSubmission>.Failure(savedDocument.Error ?? "The document could not be uploaded.", savedDocument.ErrorType);
+        if (profile?.Status == VerificationStatus.Approved)
+            return ServiceResult<TechnicianApplicationSubmission>.Failure("Use Add categories to request another service.", ServiceErrorType.Conflict);
+
+        string? uploadedPath = null;
+        if (request.Document != null)
+        {
+            var upload = await storage.SaveAsync(userId, request.Document, cancellationToken);
+            if (!upload.Succeeded)
+                return ServiceResult<TechnicianApplicationSubmission>.Failure(upload.Error ?? "The document could not be uploaded.", upload.ErrorType);
+            uploadedPath = upload.Data;
+        }
 
         var created = profile == null;
-        var previousDocuments = profile?.Documents.Select(document => document.Document).ToList() ?? [];
+        List<string> previousDocuments = [];
         try
         {
             if (profile == null)
@@ -52,8 +65,9 @@ public sealed class TechnicianApplicationService(
                 profile = new TechnicianProfile { UserId = userId, User = user, Specialization = request.Specialization!, CreatedAt = DateTime.UtcNow };
                 context.TechnicianProfiles.Add(profile);
             }
-            else
+            else if (uploadedPath != null)
             {
+                previousDocuments = profile.Documents.Select(d => d.Document).ToList();
                 context.TechnicianDocuments.RemoveRange(profile.Documents);
                 profile.Documents.Clear();
             }
@@ -62,18 +76,21 @@ public sealed class TechnicianApplicationService(
             profile.YearsOfExperience = request.YearsOfExperience!.Value;
             profile.Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio;
             profile.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address;
-            profile.VerificationStatus = VerificationStatus.Pending;
+            profile.Status = VerificationStatus.Pending;
             profile.AvailabilityStatus = AvailabilityStatus.Offline;
             profile.RejectionReason = null;
             profile.ReviewedByUserId = null;
             profile.ReviewedAt = null;
-            user.Roles = (user.Roles | UserRoles.Client) & ~UserRoles.Technician;
-            var replacedCategories = profile.Categories.Where(link => link.CategoryId != category.Id).ToList();
+            user.Roles |= UserRoles.Client;
+            var replacedCategories = profile.Categories.Where(link => !ids.Contains(link.CategoryId)).ToList();
             context.TechnicianCategories.RemoveRange(replacedCategories);
             foreach (var link in replacedCategories) profile.Categories.Remove(link);
-            if (!profile.Categories.Any(link => link.CategoryId == category.Id))
+            foreach (var link in profile.Categories) { link.ReviewStatus = null; link.RejectionReason = null; }
+            var retained = profile.Categories.Select(link => link.CategoryId).ToHashSet();
+            foreach (var category in categories.Where(c => !retained.Contains(c.Id)))
                 profile.Categories.Add(new TechnicianCategory { Technician = profile, CategoryId = category.Id, Category = category });
-            profile.Documents.Add(new TechnicianDocument { Technician = profile, Document = savedDocument.Data!, UploadedAt = DateTime.UtcNow });
+            if (uploadedPath != null)
+                profile.Documents.Add(new TechnicianDocument { Technician = profile, Document = uploadedPath, UploadedAt = DateTime.UtcNow });
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -81,13 +98,42 @@ public sealed class TechnicianApplicationService(
         catch
         {
             // Failed database writes must never leave an uploaded private document behind.
-            DeleteFile(savedDocument.Data!);
+            if (uploadedPath != null) DeleteFile(uploadedPath);
             throw;
         }
 
         // A rejected application's old evidence remains intact until its replacement is committed.
         foreach (var previous in previousDocuments) DeleteFile(previous);
         return ServiceResult<TechnicianApplicationSubmission>.Success(new(ToVm(profile), created));
+    }
+
+    public async Task<ServiceResult<TechnicianApplicationVm>> AddCategoriesAsync(int userId, int[] ids, CancellationToken ct)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        var profile = await Profiles().SingleOrDefaultAsync(p => p.UserId == userId && p.Status == VerificationStatus.Approved &&
+            p.User.Status == UserStatus.Active, ct);
+        if (profile == null) return ServiceResult<TechnicianApplicationVm>.Failure("An approved technician account is required.", ServiceErrorType.Forbidden);
+        var requested = ids.Distinct().ToArray();
+        var categories = await context.ServiceCategories.Where(c => requested.Contains(c.Id) && c.IsActive).ToListAsync(ct);
+        if (categories.Count != requested.Length) return ServiceResult<TechnicianApplicationVm>.Failure("Choose active service categories.");
+        var additions = categories.Where(c => !profile.Categories.Any(link => link.CategoryId == c.Id &&
+            link.ReviewStatus != VerificationStatus.Rejected)).ToList();
+        if (additions.Count == 0)
+            return ServiceResult<TechnicianApplicationVm>.Failure("Choose a new service category.", ServiceErrorType.Conflict);
+        foreach (var category in additions)
+        {
+            var link = profile.Categories.SingleOrDefault(c => c.CategoryId == category.Id);
+            if (link == null)
+            {
+                link = new TechnicianCategory { Technician = profile, Category = category };
+                profile.Categories.Add(link);
+            }
+            link.ReviewStatus = VerificationStatus.Pending;
+            link.RejectionReason = null;
+        }
+        await context.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return ServiceResult<TechnicianApplicationVm>.Success(ToVm(profile));
     }
 
     public async Task<ServiceResult<StoredTechnicianDocument>> GetDocumentAsync(int documentId, int userId, bool isAdmin, CancellationToken cancellationToken = default)
@@ -117,11 +163,11 @@ public sealed class TechnicianApplicationService(
         YearsOfExperience = profile.YearsOfExperience,
         Bio = profile.Bio,
         Address = profile.Address,
-        VerificationStatus = profile.VerificationStatus,
+        Status = profile.Status,
         AvailabilityStatus = profile.AvailabilityStatus,
         RejectionReason = profile.RejectionReason,
         ReviewedAt = profile.ReviewedAt,
-        Categories = profile.Categories.OrderBy(link => link.Category.Name).Select(link => new ApplicationCategoryVm { Id = link.CategoryId, Name = link.Category.Name }).ToList(),
+        Categories = profile.Categories.OrderBy(link => link.Category.Name).Select(link => new ApplicationCategoryVm { Id = link.CategoryId, Name = link.Category.Name, Status = link.ReviewStatus ?? profile.Status, RejectionReason = link.RejectionReason }).ToList(),
         Documents = profile.Documents.OrderBy(document => document.Id).Select(document => new DocumentVm
         {
             Id = document.Id,

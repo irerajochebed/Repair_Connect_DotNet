@@ -12,8 +12,8 @@ public class TechnicianProfileConfiguration : IEntityTypeConfiguration<Technicia
         builder.ToTable("TechnicianProfiles", table =>
         {
             table.HasCheckConstraint("CK_TechnicianProfiles_YearsOfExperience", "[YearsOfExperience] >= 0");
-            table.HasCheckConstraint("CK_TechnicianProfiles_VerificationStatus",
-                "[VerificationStatus] IN (N'Pending', N'Approved', N'Rejected')");
+            table.HasCheckConstraint("CK_TechnicianProfiles_Status",
+                "[Status] IN (N'Pending', N'Approved', N'Rejected')");
             table.HasCheckConstraint("CK_TechnicianProfiles_AvailabilityStatus",
                 "[AvailabilityStatus] IN (N'Available', N'Busy', N'Offline')");
         });
@@ -32,7 +32,7 @@ public class TechnicianProfileConfiguration : IEntityTypeConfiguration<Technicia
         builder.Property(tp => tp.ProfilePhoto).HasMaxLength(512);
         builder.Property(tp => tp.Address);
 
-        builder.Property(tp => tp.VerificationStatus)
+        builder.Property(tp => tp.Status)
             .HasConversion<string>()
             .HasMaxLength(16)
             .HasDefaultValue(VerificationStatus.Pending);

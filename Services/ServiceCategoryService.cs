@@ -77,7 +77,7 @@ public sealed class ServiceCategoryService(RepairConnectDbContext context) : ISe
     public async Task<ServiceResult<ServiceCategoryVm>> UpdateAsync(int id, SaveServiceCategoryRequest request, CancellationToken cancellationToken = default)
     {
         if (ValidationError(request) is { } error) return ServiceResult<ServiceCategoryVm>.Failure(error);
-        var category = await context.ServiceCategories.SingleOrDefaultAsync(category => category.Id == id, cancellationToken);
+        var category = await context.ServiceCategories.FindAsync([id], cancellationToken);
         if (category == null) return ServiceResult<ServiceCategoryVm>.NotFound("Service category not found.");
         var name = request.Name!.Trim();
         if (await NameExistsAsync(name, id, cancellationToken)) return Duplicate();
@@ -104,7 +104,7 @@ public sealed class ServiceCategoryService(RepairConnectDbContext context) : ISe
 
     public async Task<ServiceResult> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var category = await context.ServiceCategories.SingleOrDefaultAsync(category => category.Id == id, cancellationToken);
+        var category = await context.ServiceCategories.FindAsync([id], cancellationToken);
         if (category == null) return ServiceResult.NotFound("Service category not found.");
         if (await IsReferencedAsync(id, cancellationToken)) return Referenced();
         context.ServiceCategories.Remove(category);

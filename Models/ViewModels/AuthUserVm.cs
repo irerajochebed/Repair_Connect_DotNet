@@ -8,6 +8,7 @@ public class AuthUserVm
     public required string DisplayName { get; set; }
     public required string Email { get; set; }
     public string? PhoneNumber { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public UserRoles Roles { get; set; }
     public UserStatus Status { get; set; }
 }

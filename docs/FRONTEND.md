@@ -7,7 +7,7 @@ The frontend stays in the existing .NET 10 Razor Pages project. It uses Bootstra
 | Route | Behavior |
 | --- | --- |
 | `/` | Home, real active service categories from SQL Server, compact service tiles |
-| `/Explore` | Honest unavailable state until a public technician-directory API exists |
+| `/Explore` | Active service selection and repair request submission; guests can resume their draft after sign-in |
 | `/Account` | Email/password sign-in and Client sign-up; successful sign-up signs in the new account |
 | `/Dashboard` | Requires authentication; administrators manage users, technician approvals, and service categories; other roles see their account and available-service information |
 
@@ -35,7 +35,7 @@ The homepage service dropdown and tiles display the exact saved names of active 
 
 ## Unfinished domain features
 
-General profile editing, password recovery, repair submissions, bookings, reviews, and the public directory do not yet have backend APIs. Their UI does not simulate success or save fake records. The home repair entry explains that requests are unavailable.
+General profile editing, password recovery, and a public technician directory are pending. My Workspace tracks submitted requests, technician assignments, scheduled dates, job progress, and reviews.
 
 Technician documents are stored outside the public web folder and downloaded through an authenticated owner-or-administrator endpoint. They are not committed to Git.
 

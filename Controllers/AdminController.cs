@@ -7,30 +7,18 @@ using RepairConnect.Services;
 
 namespace RepairConnect.Controllers;
 
-[ApiController]
 [Route("api/admin")]
 [Authorize(Policy = "AdminOnly")]
-public class AdminController : ApiControllerBase
+public class AdminController(
+    IAdminDashboardService dashboard,
+    IAdminTechnicianService technicians,
+    IUserAdminService users) : ApiControllerBase
 {
-    private readonly IAdminDashboardService _dashboardService;
-    private readonly IAdminTechnicianService _technicianService;
-    private readonly IUserAdminService _userService;
-
-    public AdminController(
-        IAdminDashboardService dashboardService,
-        IAdminTechnicianService technicianService,
-        IUserAdminService userService)
-    {
-        _dashboardService = dashboardService;
-        _technicianService = technicianService;
-        _userService = userService;
-    }
-
     [HttpGet("dashboard")]
     [ProducesResponseType(typeof(AdminDashboardVm), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
     {
-        var result = await _dashboardService.GetDashboardMetricsAsync(cancellationToken);
+        var result = await dashboard.GetDashboardMetricsAsync(cancellationToken);
         return ToActionResult(result);
     }
 
@@ -55,7 +43,7 @@ public class AdminController : ApiControllerBase
             });
         }
 
-        var result = await _technicianService.GetTechniciansAsync(status, search, page, pageSize, cancellationToken);
+        var result = await technicians.GetTechniciansAsync(status, search, page, pageSize, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -64,9 +52,15 @@ public class AdminController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTechnician(int userId, CancellationToken cancellationToken)
     {
-        var result = await _technicianService.GetTechnicianByIdAsync(userId, cancellationToken);
+        var result = await technicians.GetTechnicianByIdAsync(userId, cancellationToken);
         return ToActionResult(result);
     }
+
+    public sealed record CategoryDecision(int[] CategoryIds, bool Approve, string? Reason);
+
+    [HttpPut("technicians/{userId:int}/category-review")]
+    public async Task<IActionResult> ReviewCategories(int userId, CategoryDecision decision, CancellationToken ct) =>
+        ToActionResult(await technicians.ReviewCategoriesAsync(userId, decision.CategoryIds, decision.Approve, decision.Reason, ct));
 
     [HttpPut("technicians/{userId:int}/approve")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -74,7 +68,7 @@ public class AdminController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ApproveTechnician(int userId, CancellationToken cancellationToken)
     {
-        var result = await _technicianService.ApproveTechnicianAsync(userId, CurrentUserId, cancellationToken);
+        var result = await technicians.ApproveTechnicianAsync(userId, CurrentUserId, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -87,12 +81,7 @@ public class AdminController : ApiControllerBase
         [FromBody] RejectTechnicianRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        var result = await _technicianService.RejectTechnicianAsync(userId, request.Reason, CurrentUserId, cancellationToken);
+        var result = await technicians.RejectTechnicianAsync(userId, request.Reason, CurrentUserId, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -119,7 +108,7 @@ public class AdminController : ApiControllerBase
             });
         }
 
-        var result = await _userService.GetUsersAsync(role, status, search, page, pageSize, cancellationToken);
+        var result = await users.GetUsersAsync(role, status, search, page, pageSize, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -132,12 +121,7 @@ public class AdminController : ApiControllerBase
         [FromBody] UpdateUserStatusRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        var result = await _userService.UpdateUserStatusAsync(id, request.Status!.Value, CurrentUserId, cancellationToken);
+        var result = await users.UpdateUserStatusAsync(id, request.Status!.Value, CurrentUserId, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -149,12 +133,7 @@ public class AdminController : ApiControllerBase
         [FromBody] CreateUserRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        var result = await _userService.CreateUserAsync(request, cancellationToken);
+        var result = await users.CreateUserAsync(request, cancellationToken);
         if (!result.Succeeded)
         {
             return ToActionResult(result);
@@ -169,7 +148,7 @@ public class AdminController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(int id, CancellationToken cancellationToken)
     {
-        var result = await _userService.SoftDeleteUserAsync(id, CurrentUserId, cancellationToken);
+        var result = await users.SoftDeleteUserAsync(id, CurrentUserId, cancellationToken);
         return ToActionResult(result);
     }
 }

@@ -68,7 +68,7 @@ public class AdminServiceTests : IDisposable
             UserId = techUser.Id,
             Specialization = "Electrical",
             YearsOfExperience = 5,
-            VerificationStatus = VerificationStatus.Pending,
+            Status = VerificationStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
         context.TechnicianProfiles.Add(profile);
@@ -120,7 +120,7 @@ public class AdminServiceTests : IDisposable
             UserId = techUser.Id,
             Specialization = "Plumbing",
             YearsOfExperience = 3,
-            VerificationStatus = VerificationStatus.Pending,
+            Status = VerificationStatus.Pending,
             RejectionReason = "Previously missing documents",
             CreatedAt = DateTime.UtcNow
         };
@@ -145,14 +145,14 @@ public class AdminServiceTests : IDisposable
 
         using var verifyContext = CreateContext();
         var updatedProfile = await verifyContext.TechnicianProfiles.FirstAsync(p => p.UserId == techUser.Id);
-        Assert.Equal(VerificationStatus.Approved, updatedProfile.VerificationStatus);
+        Assert.Equal(VerificationStatus.Approved, updatedProfile.Status);
         Assert.Equal(admin.Id, updatedProfile.ReviewedByUserId);
         Assert.NotNull(updatedProfile.ReviewedAt);
         Assert.Null(updatedProfile.RejectionReason);
     }
 
     [Fact]
-    public async Task Approve_WithNoDocuments_Fails()
+    public async Task Approve_WithNoDocuments_Succeeds()
     {
         // Arrange
         using var context = CreateContext();
@@ -184,7 +184,7 @@ public class AdminServiceTests : IDisposable
             UserId = techUser.Id,
             Specialization = "Carpentry",
             YearsOfExperience = 2,
-            VerificationStatus = VerificationStatus.Pending,
+            Status = VerificationStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
         context.TechnicianProfiles.Add(profile);
@@ -196,9 +196,8 @@ public class AdminServiceTests : IDisposable
         var result = await service.ApproveTechnicianAsync(techUser.Id, admin.Id);
 
         // Assert
-        Assert.False(result.Succeeded);
-        Assert.Equal(ServiceErrorType.BadRequest, result.ErrorType);
-        Assert.Contains("documents", result.Error, StringComparison.OrdinalIgnoreCase);
+        Assert.True(result.Succeeded);
+        Assert.Equal(VerificationStatus.Approved, profile.Status);
     }
 
     [Fact]
@@ -292,7 +291,7 @@ public class AdminServiceTests : IDisposable
                 UserId = tech1.Id,
                 Specialization = "Electrical",
                 YearsOfExperience = 4,
-                VerificationStatus = VerificationStatus.Pending,
+                Status = VerificationStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             },
             new TechnicianProfile
@@ -300,7 +299,7 @@ public class AdminServiceTests : IDisposable
                 UserId = tech2.Id,
                 Specialization = "Plumbing",
                 YearsOfExperience = 6,
-                VerificationStatus = VerificationStatus.Approved,
+                Status = VerificationStatus.Approved,
                 CreatedAt = DateTime.UtcNow
             }
         );

@@ -12,6 +12,9 @@ public sealed class CategoriesController(IServiceCategoryService categories) : A
 {
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ServiceCategoryVm>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetActive(CancellationToken cancellationToken) =>
-        ToActionResult(await categories.GetActiveAsync(cancellationToken));
+    public async Task<IActionResult> GetActive(CancellationToken cancellationToken)
+    {
+        var result = await categories.GetActiveAsync(cancellationToken);
+        return ToActionResult(result);
+    }
 }

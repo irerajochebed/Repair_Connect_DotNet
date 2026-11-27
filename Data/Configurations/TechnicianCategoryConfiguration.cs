@@ -10,6 +10,8 @@ public class TechnicianCategoryConfiguration : IEntityTypeConfiguration<Technici
     {
         builder.ToTable("TechnicianCategories");
 
+        builder.Property(tc => tc.ReviewStatus).HasConversion<string>().HasMaxLength(16);
+        builder.Property(tc => tc.RejectionReason).HasMaxLength(2000);
         builder.HasKey(tc => new { tc.TechnicianUserId, tc.CategoryId });
 
         builder.HasOne(tc => tc.Technician)

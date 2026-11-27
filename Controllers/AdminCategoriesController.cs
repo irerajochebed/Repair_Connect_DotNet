@@ -15,31 +15,47 @@ public sealed class AdminCategoriesController(IServiceCategoryService categories
     [ProducesResponseType(typeof(PaginatedList<ServiceCategoryVm>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories([FromQuery] string? search = null,
         [FromQuery] bool? isActive = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10,
-        CancellationToken cancellationToken = default) =>
-        ToActionResult(await categories.GetCategoriesAsync(search, isActive, page, pageSize, cancellationToken));
+        CancellationToken cancellationToken = default)
+    {
+        var result = await categories.GetCategoriesAsync(search, isActive, page, pageSize, cancellationToken);
+        return ToActionResult(result);
+    }
 
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ServiceCategoryVm), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCategory(int id, CancellationToken cancellationToken) =>
-        ToActionResult(await categories.GetByIdAsync(id, cancellationToken));
+    public async Task<IActionResult> GetCategory(int id, CancellationToken cancellationToken)
+    {
+        var result = await categories.GetByIdAsync(id, cancellationToken);
+        return ToActionResult(result);
+    }
 
     [HttpPost]
     [ProducesResponseType(typeof(ServiceCategoryVm), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] SaveServiceCategoryRequest request, CancellationToken cancellationToken)
     {
         var result = await categories.CreateAsync(request, cancellationToken);
-        return result.Succeeded
-            ? CreatedAtAction(nameof(GetCategory), new { id = result.Data!.Id }, result.Data)
-            : ToActionResult(result);
+        if (!result.Succeeded)
+        {
+            return ToActionResult(result);
+        }
+
+        var category = result.Data!;
+        return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
     }
 
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(ServiceCategoryVm), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(int id, [FromBody] SaveServiceCategoryRequest request, CancellationToken cancellationToken) =>
-        ToActionResult(await categories.UpdateAsync(id, request, cancellationToken));
+    public async Task<IActionResult> Update(int id, [FromBody] SaveServiceCategoryRequest request, CancellationToken cancellationToken)
+    {
+        var result = await categories.UpdateAsync(id, request, cancellationToken);
+        return ToActionResult(result);
+    }
 
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken) =>
-        ToActionResult(await categories.DeleteAsync(id, cancellationToken));
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var result = await categories.DeleteAsync(id, cancellationToken);
+        return ToActionResult(result);
+    }
 }

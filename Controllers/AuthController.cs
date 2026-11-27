@@ -151,6 +151,7 @@ public class AuthController : ApiControllerBase
         Id = user.Id,
         DisplayName = user.DisplayName,
         Email = user.Email ?? string.Empty,
+        DateOfBirth = user.DateOfBirth,
         PhoneNumber = user.PhoneNumber,
         Roles = user.Roles,
         Status = user.Status
