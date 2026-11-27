@@ -1,0 +1,38 @@
+<section class="panel technician-application" id="technician-application" aria-labelledby="technician-application-title" hidden>
+    <div class="application-heading"><h2 id="technician-application-title">Become a technician</h2></div>
+    <p class="application-loading" id="application-loading" role="status">Loading your application…</p>
+    <div class="form-error application-error" id="application-error" role="alert" tabindex="-1" hidden></div>
+    <button class="text-button" id="application-retry" type="button" hidden>Try again</button>
+    <details class="application-status" id="application-status" hidden>
+        <summary class="application-summary">
+            <span id="application-status-badge" class="status-badge"></span>
+            <span class="btn btn-outline-primary btn-sm"><span class="view-details">View details</span><span class="hide-details">Hide details</span></span>
+        </summary>
+        <p id="application-status-message"></p>
+        <dl class="profile-details" id="application-details"></dl>
+        <div class="application-rejection" id="application-rejection" hidden><strong>What needs updating</strong><p id="application-rejection-reason"></p></div>
+        <div class="application-documents" id="application-documents" hidden><h4>Supporting document</h4><ul id="application-document-list"></ul></div>
+        <button class="btn btn-outline-primary" id="application-edit" type="button" hidden>Update and resubmit</button>
+    </details>
+    <form class="application-form" id="technician-application-form" enctype="multipart/form-data" hidden>
+        <div><label class="form-label" for="application-specialization">Specialization *</label><input class="form-control" id="application-specialization" name="specialization" required maxlength="100" pattern=".*\S.*" placeholder="e.g. Plumbing" /><div class="invalid-feedback" id="application-specialization-error"></div></div>
+        <div class="service-field">
+            <span id="application-services-label">Service categories *</span>
+            <details id="application-services" class="category-picker">
+                <summary class="form-select" id="application-category" aria-labelledby="application-services-label application-selection" aria-describedby="application-category-hint"><span id="application-selection">Choose categories</span></summary>
+                <div class="service-options">
+                    <input class="form-control" type="search" id="application-search" aria-label="Search service categories" placeholder="Search categories" />
+                    <div class="service-list" id="application-options"></div>
+                    <p class="mb-0" id="application-no-match" hidden>No matching categories.</p>
+                </div>
+            </details>
+            <div class="invalid-feedback" id="application-category-error"></div>
+            <p class="field-hint mb-0" id="application-category-hint"></p>
+        </div>
+        <div><label class="form-label" for="application-experience">Years of experience *</label><input class="form-control" id="application-experience" name="yearsOfExperience" type="number" min="0" max="60" step="1" required placeholder="0" /><div class="invalid-feedback" id="application-experience-error"></div></div>
+        <div><label class="form-label" for="application-address">Address *</label><input class="form-control" id="application-address" name="address" required maxlength="300" autocomplete="street-address" placeholder="Your service location" /><div class="invalid-feedback" id="application-address-error"></div></div>
+        <div class="application-full"><label class="form-label" for="application-bio">About your work *</label><textarea class="form-control" id="application-bio" name="bio" required rows="2" maxlength="2000" placeholder="Briefly describe your repair skills and experience."></textarea><div class="invalid-feedback" id="application-bio-error"></div></div>
+        <div class="application-full"><label class="form-label" for="application-document">Supporting document (optional)</label><input class="form-control" id="application-document" name="document" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" /><div class="invalid-feedback" id="application-document-error"></div></div>
+        <div class="form-actions application-full"><button class="btn btn-quiet" id="application-cancel" type="button" hidden>Cancel</button><button class="btn btn-primary" id="application-submit" type="submit">Submit application</button></div>
+    </form>
+</section>

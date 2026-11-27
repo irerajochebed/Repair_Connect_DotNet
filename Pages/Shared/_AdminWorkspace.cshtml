@@ -1,0 +1,129 @@
+<section id="admin-workspace" class="admin-shell" aria-label="Administration workspace" hidden>
+    <aside class="offcanvas-lg offcanvas-start admin-sidebar" tabindex="-1" id="admin-sidebar" aria-labelledby="admin-navigation-title">
+        <a class="brand admin-sidebar-brand d-none d-lg-flex" asp-page="/Index">Repair<span class="brand-accent">Connect</span></a>
+        <div class="admin-sidebar-heading"><div><span>WORKSPACE</span><h2 id="admin-navigation-title">Administration</h2></div><button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#admin-sidebar" aria-label="Close workspace menu"></button></div>
+        <div class="offcanvas-body">
+            <div class="admin-tabs" role="tablist" aria-label="Administration sections" aria-orientation="vertical">
+                <button class="active" id="admin-dashboard-tab" type="button" role="tab" aria-selected="true" aria-controls="admin-dashboard-panel" data-bs-toggle="tab" data-bs-target="#admin-dashboard-panel" data-section-label="Dashboard">@Ui.Icon("home")<span>Dashboard</span></button>
+                <button id="admin-users-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-users-panel" data-bs-toggle="tab" data-bs-target="#admin-users-panel" data-section-label="Users">@Ui.Icon("users")<span>Users</span></button>
+                <button id="admin-technicians-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-technicians-panel" data-bs-toggle="tab" data-bs-target="#admin-technicians-panel" data-section-label="Technician applications">@Ui.Icon("shield")<span>Technician applications</span></button>
+                <button id="admin-categories-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-categories-panel" data-bs-toggle="tab" data-bs-target="#admin-categories-panel" data-section-label="Service categories">@Ui.Icon("tool")<span>Service categories</span></button>
+            </div>
+            <a class="admin-home-link" asp-page="/Index">@Ui.Icon("home")<span>Back to home</span></a>
+        </div>
+    </aside>
+    <div class="admin-content">
+        <button class="admin-menu-trigger" id="admin-menu-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#admin-sidebar" aria-controls="admin-sidebar" aria-expanded="false" aria-haspopup="dialog">@Ui.Icon("menu")<span><small>Workspace menu</small><strong id="admin-current-section" aria-live="polite">Dashboard</strong></span>@Ui.Icon("chevron")</button>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="admin-dashboard-panel" role="tabpanel" aria-labelledby="admin-dashboard-tab" tabindex="0">
+        <div class="workspace-heading admin-workspace-heading">
+            <div><span class="eyebrow">ADMINISTRATION</span><h1>Hello, <span data-greeting-name>@User.Identity?.Name</span>.</h1></div>
+        </div>
+    <div class="admin-metrics" id="admin-metrics" aria-label="Service overview" aria-busy="true">
+        <article class="panel admin-metric"><span>Clients</span><strong data-admin-metric="totalClients">—</strong></article>
+        <article class="panel admin-metric"><span>Technicians</span><strong data-admin-metric="totalTechnicians">—</strong></article>
+        <article class="panel admin-metric"><span>Awaiting review</span><strong data-admin-metric="pendingTechnicians">—</strong></article>
+        <article class="panel admin-metric"><span>Open requests</span><strong data-admin-metric="openRequests">—</strong></article>
+        <article class="panel admin-metric"><span>Completed jobs</span><strong data-admin-metric="completedBookings">—</strong></article>
+    </div>
+    <div class="admin-inline-error" id="admin-metrics-error" role="alert" hidden><span></span><button class="text-button" type="button" id="admin-retry-metrics">Retry</button></div>
+
+            </div>
+            <div class="tab-pane fade panel admin-panel" id="admin-users-panel" role="tabpanel" aria-labelledby="admin-users-tab" tabindex="0">
+                <div class="admin-panel-heading"><div><h2>User management</h2></div><button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#admin-create-modal">@Ui.Icon("plus") Create user</button></div>
+                <form id="admin-user-filters" class="admin-filters" role="search" aria-label="Search users">
+                    <div class="admin-search"><label class="form-label" for="admin-user-search">Search users</label><input class="form-control" id="admin-user-search" type="search" placeholder="Name, email or phone" maxlength="200" /></div>
+                    <div><label class="form-label" for="admin-user-role">Role</label><select class="form-select" id="admin-user-role"><option value="">All roles</option><option value="Client">Client</option><option value="Technician">Technician</option><option value="Admin">Admin</option></select></div>
+                    <div><label class="form-label" for="admin-user-status">Account status</label><select class="form-select" id="admin-user-status"><option value="">All statuses</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+                <div class="admin-list-state" id="admin-users-state" role="status" aria-live="polite"></div>
+                <div class="admin-inline-error admin-list-error" id="admin-users-error" role="alert" hidden><span></span><button class="text-button" type="button" id="admin-retry-users">Try again</button></div>
+                <div class="admin-table-scroll" id="admin-users-results" aria-busy="true">
+                    <table class="admin-table admin-user-table"><caption class="visually-hidden">User accounts matching your filters</caption><thead><tr><th scope="col">Account</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Joined</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead><tbody id="admin-users-body"></tbody></table>
+                </div>
+                <div class="admin-pagination" id="admin-users-pagination"><span id="admin-users-count" aria-live="polite"></span><div><button class="btn btn-quiet btn-sm" type="button" id="admin-users-prev" disabled>Previous</button><button class="btn btn-quiet btn-sm" type="button" id="admin-users-next" disabled>Next</button></div></div>
+            </div>
+            <div class="tab-pane fade panel admin-panel" id="admin-technicians-panel" role="tabpanel" aria-labelledby="admin-technicians-tab" tabindex="0">
+                <div class="admin-panel-heading"><div><h2>Technician applications</h2></div></div>
+                <form id="admin-technician-filters" class="admin-filters admin-technician-filters" role="search" aria-label="Search technician applications">
+                    <div class="admin-search"><label class="form-label" for="admin-technician-search">Search applications</label><input class="form-control" id="admin-technician-search" type="search" placeholder="Name or specialization" maxlength="200" /></div>
+                    <div><label class="form-label" for="admin-technician-status">Verification</label><select class="form-select" id="admin-technician-status"><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select></div>
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+                <div class="admin-list-state" id="admin-technicians-state" role="status" aria-live="polite"></div>
+                <div class="admin-inline-error admin-list-error" id="admin-technicians-error" role="alert" hidden><span></span><button class="text-button" type="button" id="admin-retry-technicians">Try again</button></div>
+                <div class="admin-table-scroll" id="admin-technicians-results" aria-busy="true">
+                    <table class="admin-table admin-technician-table"><caption class="visually-hidden">Technician applications matching your filters</caption><thead><tr><th scope="col">Technician</th><th scope="col">Experience</th><th scope="col">Documents</th><th scope="col">Verification</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead><tbody id="admin-technicians-body"></tbody></table>
+                </div>
+                <div class="admin-pagination" id="admin-technicians-pagination"><span id="admin-technicians-count" aria-live="polite"></span><div><button class="btn btn-quiet btn-sm" type="button" id="admin-technicians-prev" disabled>Previous</button><button class="btn btn-quiet btn-sm" type="button" id="admin-technicians-next" disabled>Next</button></div></div>
+            </div>
+            <div class="tab-pane fade panel admin-panel" id="admin-categories-panel" role="tabpanel" aria-labelledby="admin-categories-tab" tabindex="0">
+                <div class="admin-panel-heading"><div><h2>Service categories</h2></div><button class="btn btn-primary btn-sm" type="button" id="admin-category-add">@Ui.Icon("plus") Add category</button></div>
+                <form id="admin-category-filters" class="admin-filters admin-technician-filters" role="search" aria-label="Search service categories">
+                    <div class="admin-search"><label class="form-label" for="admin-category-search">Search categories</label><input class="form-control" id="admin-category-search" type="search" placeholder="Name or description" maxlength="200" /></div>
+                    <div><label class="form-label" for="admin-category-status">Status</label><select class="form-select" id="admin-category-status"><option value="">All statuses</option><option value="true">Active</option><option value="false">Inactive</option></select></div>
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+                <div class="admin-list-state" id="admin-categories-state" role="status" aria-live="polite"></div>
+                <div class="admin-inline-error admin-list-error" id="admin-categories-error" role="alert" hidden><span></span><button class="text-button" type="button" id="admin-retry-categories">Try again</button></div>
+                <div class="admin-table-scroll" id="admin-categories-results" aria-busy="true">
+                    <table class="admin-table admin-category-table"><caption class="visually-hidden">Service categories matching your filters</caption><thead><tr><th scope="col">Service category</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead><tbody id="admin-categories-body"></tbody></table>
+                </div>
+                <div class="admin-pagination" id="admin-categories-pagination"><span id="admin-categories-count" aria-live="polite"></span><div><button class="btn btn-quiet btn-sm" type="button" id="admin-categories-prev" disabled>Previous</button><button class="btn btn-quiet btn-sm" type="button" id="admin-categories-next" disabled>Next</button></div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="admin-create-modal" tabindex="-1" aria-labelledby="admin-create-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered admin-create-dialog"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title" id="admin-create-title">Create user</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body"><p class="admin-modal-intro" id="admin-create-intro">Create a client account for repair services.</p>
+        <form id="admin-create-form" class="admin-create-form">
+            <div class="admin-form-error" id="admin-create-error" role="alert" hidden></div>
+            <div><label class="form-label" for="admin-create-name">Username *</label><input class="form-control" id="admin-create-name" name="displayName" required maxlength="100" pattern=".*\S.*" autocomplete="name" /><div class="invalid-feedback" id="admin-create-name-error"></div></div>
+            <div><label class="form-label" for="admin-create-phone">Phone <span class="optional">(optional)</span></label><input class="form-control" id="admin-create-phone" name="phoneNumber" type="tel" maxlength="20" autocomplete="off" /><div class="invalid-feedback" id="admin-create-phone-error"></div></div>
+            <div><label class="form-label" for="admin-create-dob">Date of birth (optional)</label><input class="form-control" id="admin-create-dob" name="dateOfBirth" type="date" /></div>
+            <div class="admin-create-email-field"><label class="form-label" for="admin-create-email">Email address *</label><input class="form-control" id="admin-create-email" name="email" type="email" required maxlength="256" autocomplete="off" /><div class="invalid-feedback" id="admin-create-email-error"></div></div>
+            <div class="admin-create-password-field"><label class="form-label" for="admin-create-password">Password *</label><input class="form-control" id="admin-create-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="admin-password-hint" /><div class="field-hint" id="admin-password-hint">Use at least 8 characters.</div><div class="invalid-feedback" id="admin-create-password-error"></div></div>
+            <div class="form-actions"><button class="btn btn-quiet" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit" id="admin-create-submit">Create user</button></div>
+        </form>
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="admin-category-modal" tabindex="-1" aria-labelledby="admin-category-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered admin-category-dialog"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title" id="admin-category-title">Add service category</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+        <div class="admin-list-state admin-category-loading" id="admin-category-loading" role="status" hidden>Loading category…</div>
+        <div class="admin-form-error" id="admin-category-error" role="alert" hidden></div>
+        <button class="text-button mb-3" type="button" id="admin-category-retry" hidden>Try again</button>
+        <form id="admin-category-form" class="admin-category-form">
+            <div><label class="form-label" for="admin-category-name">Category name *</label><input class="form-control" id="admin-category-name" name="name" required maxlength="100" pattern=".*\S.*" autocomplete="off" /><div class="invalid-feedback" id="admin-category-name-error"></div></div>
+            <div><label class="form-label" for="admin-category-description">Description <span class="optional">(optional)</span></label><textarea class="form-control" id="admin-category-description" name="description" rows="3" maxlength="1000" placeholder="A short description of the service."></textarea><div class="invalid-feedback" id="admin-category-description-error"></div></div>
+            <div><label class="form-check d-flex align-items-center gap-2 m-0"><input class="form-check-input mt-0" id="admin-category-active" name="isActive" type="checkbox" checked /><span>Active category</span></label><p class="field-hint mb-0">Inactive categories are hidden from new service selections.</p><div class="invalid-feedback" id="admin-category-active-error"></div></div>
+            <div class="form-actions"><button class="btn btn-quiet" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit" id="admin-category-save">Add category</button></div>
+        </form>
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="admin-category-delete-modal" tabindex="-1" aria-labelledby="admin-category-delete-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title" id="admin-category-delete-title">Delete service category?</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body"><p><strong id="admin-category-delete-name"></strong> will be removed. This cannot be undone.</p><p class="field-hint mb-0">Categories used by existing requests or technician profiles cannot be deleted. You can deactivate them instead.</p><div class="admin-form-error mt-3 mb-0" id="admin-category-delete-error" role="alert" hidden></div></div>
+    <div class="modal-footer"><button class="btn btn-outline-primary" type="button" id="admin-category-delete-alternative" hidden>Edit category</button><button class="btn btn-quiet" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" type="button" id="admin-category-delete-confirm">Delete category</button></div>
+</div></div></div>
+
+<div class="modal fade" id="admin-user-modal" tabindex="-1" aria-labelledby="admin-user-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title" id="admin-user-title">Manage account</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body"><div class="admin-form-error" id="admin-user-error" role="alert" hidden></div><div id="admin-user-summary"></div>
+        <form id="admin-user-form"><label class="form-label" for="admin-manage-status">Account status</label><select class="form-select" id="admin-manage-status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select><p class="field-hint" id="admin-self-note" hidden>You cannot deactivate your own account.</p><div class="form-actions"><button class="btn btn-quiet" type="button" data-bs-dismiss="modal">Close</button><button class="btn btn-primary" type="submit" id="admin-user-save">Save status</button></div></form>
+        <div class="admin-danger-zone" id="admin-user-danger"><p>Deactivating an account removes access while keeping its records.</p><button class="text-button text-danger" type="button" id="admin-user-deactivate">Deactivate account</button></div>
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="admin-review-modal" tabindex="-1" aria-labelledby="admin-review-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title" id="admin-review-title">Review technician</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body"><div class="admin-list-state" id="admin-review-loading" role="status">Loading application…</div><div class="admin-form-error" id="admin-review-error" role="alert" hidden></div><div id="admin-review-content" hidden></div>
+        <form id="admin-reject-form" class="admin-reject-form" hidden><label class="form-label" for="admin-reject-reason">Reason for rejection *</label><textarea class="form-control" id="admin-reject-reason" rows="3" required maxlength="2000" placeholder="Explain what the technician needs to address."></textarea><div class="form-actions"><button class="btn btn-quiet" type="button" id="admin-reject-cancel">Keep reviewing</button><button class="btn btn-outline-primary" type="submit" id="admin-reject-submit">Confirm rejection</button></div></form>
+    </div>
+    <div class="modal-footer" id="admin-review-actions" hidden><button class="btn btn-quiet" type="button" id="admin-review-reject">Reject application</button><button class="btn btn-primary" type="button" id="admin-review-approve">Approve technician</button></div>
+</div></div></div>

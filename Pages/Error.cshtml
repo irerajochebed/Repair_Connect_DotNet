@@ -1,26 +1,28 @@
-﻿@page
-@model ErrorModel
+@page
+@model RepairConnect.Pages.ErrorModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Something went wrong";
+    ViewData["PageSurface"] = true;
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+<section class="error-section">
+    <div class="container">
+        <div class="panel error-panel">
+            <span class="icon-tile">@Ui.Icon("tool")</span>
+            <span class="eyebrow d-block">LET'S GET YOU BACK ON TRACK</span>
+            <h1>Something went wrong.</h1>
+            <p>We couldn't load this page. Please try again in a moment, or head back home.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a class="btn btn-primary" asp-page="/Index">Back to home</a>
+                <a class="btn btn-outline-primary" asp-page="/Explore">Find help</a>
+            </div>
+            @if (Model.ShowRequestId)
+            {
+                <div class="error-reference">
+                    <span>Support reference</span><br />
+                    <code>@Model.RequestId</code>
+                </div>
+            }
+        </div>
+    </div>
+</section>

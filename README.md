@@ -18,7 +18,7 @@ RepairConnect is a group project for connecting clients who need repair services
 | --- | --- |
 | Web app | ASP.NET Core Razor Pages targeting .NET 10, with a Bootstrap 5 frontend across four main pages: Home, Find Help, Account, My Workspace |
 | Database schema | Eight C# models, a SQL Server database context, and the `InitialCreate` migration |
-| User features | Client sign-up and sign-in/logout, same-account technician applications with private supporting documents, administrator review and enum role grants, user status management, and full service-category management. Repair submissions and bookings are not implemented yet. |
+| User features | Client sign-up and sign-in/logout, same-account technician applications with private supporting documents, administrator review and enum role grants, user status management, and full service-category management. Clients can submit repair requests, track assigned jobs, and review completed repairs. Approved technicians accept matching requests and update job progress. |
 | Stored procedures | Planned for backend operations if the team adopts the stored-procedure approach |
 | Deployment | This README describes the team workflow. The repository has no deployment pipeline yet. |
 

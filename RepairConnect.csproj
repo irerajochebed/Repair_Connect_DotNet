@@ -4,30 +4,23 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>RepairConnect-03dd7f74-426b-4fba-9d5f-e7c29e34ed54</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DTOs\**" />
-    <Compile Remove="Servive\**" />
-    <Content Remove="DTOs\**" />
-    <Content Remove="Servive\**" />
-    <EmbeddedResource Remove="DTOs\**" />
-    <EmbeddedResource Remove="Servive\**" />
-    <None Remove="DTOs\**" />
-    <None Remove="Servive\**" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
-    <Folder Include="Services\" />
-    <Folder Include="Pages\Admin\" />
-    <Folder Include="Pages\Techninician\" />
-    <Folder Include="Pages\Users\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <Compile Remove="RepairConnect.Tests\**" />
+    <Content Remove="RepairConnect.Tests\**" />
+    <EmbeddedResource Remove="RepairConnect.Tests\**" />
+    <None Remove="RepairConnect.Tests\**" />
   </ItemGroup>
 
 </Project>

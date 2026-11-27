@@ -14,15 +14,15 @@ public sealed class TechnicianApplicationRequest
     [Required, Range(0, 60)]
     public int? YearsOfExperience { get; set; }
 
-    [Required, Range(1, int.MaxValue)]
+    [Range(1, int.MaxValue)]
     public int? CategoryId { get; set; }
+    public int[] CategoryIds { get; set; } = [];
 
-    [MaxLength(2000)]
+    [Required, MaxLength(2000)]
     public string? Bio { get => _bio; set => _bio = value?.Trim(); }
 
-    [MaxLength(300)]
+    [Required, MaxLength(300)]
     public string? Address { get => _address; set => _address = value?.Trim(); }
 
-    [Required]
     public IFormFile? Document { get; set; }
 }

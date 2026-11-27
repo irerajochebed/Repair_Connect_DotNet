@@ -1,0 +1,12 @@
+<div class="modal fade" id="profile-modal" tabindex="-1" aria-labelledby="profile-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title" id="profile-modal-title">My account</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+            <p id="profile-loading" role="status">Loading your account…</p>
+            <div id="profile-error" role="alert" hidden><p id="profile-error-text"></p><button class="text-button" id="profile-retry" type="button">Try again</button><a class="text-link" id="profile-signin" asp-page="/Account" hidden>Sign in</a></div>
+            <dl class="profile-details" id="account-details"></dl>
+            <p class="field-hint mt-3">Contact your administrator if your account details need to change.</p>
+        </div>
+        <div class="modal-footer"><button class="btn btn-outline-primary" type="button" data-logout>Sign out</button><button class="btn btn-primary" type="button" data-bs-dismiss="modal">Done</button></div>
+    </div></div>
+</div>

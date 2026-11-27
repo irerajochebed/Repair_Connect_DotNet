@@ -1,10 +1,83 @@
-﻿@page
+@page
 @model IndexModel
-@{
-    ViewData["Title"] = "Home page";
+@{ ViewData["Title"] = "A better way to get it fixed"; }
+<section class="home-hero" aria-labelledby="home-title">
+    <div class="container">
+        <div class="hero-layout">
+            <div class="hero-copy">
+                <h1 id="home-title">Less worrying.<br />More <span>getting it fixed.</span></h1>
+                <p class="hero-description">From a leaking tap to a light that won't turn on, find the right person for your home's everyday repairs.</p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-lg" asp-page="/Explore">Request a repair</a>
+                    <a class="btn btn-outline-primary btn-lg" href="#services">Browse services</a>
+                </div>
+                <div class="hero-reassurance">@Ui.Icon("shield") <span>Skilled technicians. Clear requests. One simple place.</span></div>
+            </div>
+            <div class="hero-booking">
+                <div class="quick-request panel">
+                    <h2>What needs fixing?</h2>
+                    <p>Start with a service and location.</p>
+                    <form action="/Explore" method="get" id="quick-request-form">
+                        <div class="quick-fields">
+                            <div>
+                                <label for="quick-category" class="form-label">Service</label>
+                                <select class="form-select" id="quick-category" name="category" disabled="@(Model.Categories.Count == 0)">
+                                    <option value="">@(Model.Categories.Count > 0 ? "Choose a service" : Model.CatalogUnavailable ? "Services unavailable" : "No services available")</option>
+                                    @foreach (var service in Model.Categories)
+                                    {
+                                        <option value="@service.Id">@service.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div>
+                                <label for="quick-location" class="form-label">Location</label>
+                                <div class="input-icon">@Ui.Icon("pin")<input class="form-control" id="quick-location" name="location" placeholder="location" maxlength="150" /></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 quick-submit" type="submit">Get started</button>
+                        <p class="form-footnote">A technician in your service category can accept your request.</p>
+                    </form>
+                </div>
+                <div class="hero-card-note">@Ui.Icon("check") One account for all your home repairs</div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="service-section section-space" id="services" aria-labelledby="services-title">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">WHAT CAN WE HELP WITH?</span>
+                <h2 id="services-title">Small fixes. A big difference.</h2>
+                <p>Choose a service to get started.</p>
+            </div>
+        </div>
+        @if (Model.Categories.Count == 0)
+        {
+            <p class="info-strip">@(Model.CatalogUnavailable ? "Services are temporarily unavailable. Please try again later." : "Service categories will appear here when they are available.")</p>
+        }
+        <div class="service-grid">
+            @foreach (var service in Model.Categories)
+            {
+                <a class="service-tile" asp-page="/Explore" asp-route-category="@service.Id" aria-describedby="service-hint-@service.Id">
+                    <span class="service-tile-icon">@Ui.Icon(Ui.ServiceIcon(service.Name))</span>
+                    <span class="service-tile-name">@service.Name</span>
+                    <span class="visually-hidden" id="service-hint-@service.Id">@service.Description</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+<section class="how-section section-space" id="how-it-works"><div class="container"><div class="row gy-4 gx-lg-5"><div class="col-lg-4"><span class="eyebrow">FROM PROBLEM TO SORTED</span><h2>A repair shouldn't<br />be a project.</h2><p>We keep the process simple, so you can get back to your day.</p></div>
+<div class="col-lg-8"><div class="row g-4 steps"><div class="col-md-4"><span class="step-icon">@Ui.Icon("file")</span><h3>Tell us what's wrong</h3><p>Share a few details, your location, and a day that suits you.</p></div><div class="col-md-4"><span class="step-icon">@Ui.Icon("users")</span><h3>Find the right help</h3><p>A technician who handles your type of repair can accept the job.</p></div><div class="col-md-4"><span class="step-icon">@Ui.Icon("check")</span><h3>Get back to normal</h3><p>Track the job in your workspace and share a review when it's done.</p></div></div></div>
+</div></div></section>
+<section class="container technician-callout"><div><span class="eyebrow">GOOD WITH YOUR HANDS?</span><h2>Your skills belong here.</h2><p>Build your technician profile and help more people in your community.</p></div>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <a class="btn btn-outline-primary" asp-page="/Dashboard" asp-route-panel="technician">Become a technician</a>
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+else
+{
+    <a class="btn btn-outline-primary" asp-page="/Account" asp-route-mode="register" asp-route-returnUrl="/Dashboard?panel=technician">Become a technician</a>
+}
+</section>

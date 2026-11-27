@@ -1,0 +1,42 @@
+@page
+@model IndexModel
+@{ ViewData["Title"] = "Find help"; ViewData["PageSurface"] = true; }
+<section class="container repair-page">
+    <h1>What needs fixing?</h1>
+    @if (Model.CatalogUnavailable || Model.Categories.Count == 0)
+    {
+        <p class="repair-availability">@(Model.CatalogUnavailable ? "Services unavailable. Refresh to try again." : "Services unavailable. Check back when a repair service is available.")</p>
+    }
+    else
+    {
+        <form id="repair-form" class="panel repair-panel" data-signed-in="@(User.Identity?.IsAuthenticated == true ? "yes" : "no")">
+            <div class="service-field">
+                <span id="service-label">Services</span>
+                <details id="service-picker">
+                    <summary class="form-select" aria-labelledby="service-label service-summary"><span id="service-summary">Choose services</span></summary>
+                    <div class="service-options">
+                        <input type="search" id="service-search" class="form-control" aria-label="Search services" placeholder="Search services" />
+                        <div class="service-list">
+                            @foreach (var service in Model.Categories)
+                            {
+                                <label><input type="checkbox" name="categoryIds" value="@service.Id" checked="@(Request.Query["category"] == service.Id.ToString())" /> <span>@service.Name</span></label>
+                            }
+                        </div>
+                        <p id="no-service-matches" hidden>No matching services.</p>
+                    </div>
+                </details>
+                <small>Each selected service creates a separate repair request.</small>
+            </div>
+            <label>Repair title<input class="form-control" name="title" required maxlength="150" placeholder="e.g. Fridge stopped cooling" /></label>
+            <label>Description<textarea class="form-control" name="description" required maxlength="4000" rows="3"></textarea></label>
+            <label>Service location<input class="form-control" name="serviceLocation" value="@Request.Query["location"]" required maxlength="300" /></label>
+            <div class="repair-pair">
+                <label>Urgency<select class="form-select" name="urgency"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+                <label>Preferred date (optional)<input class="form-control" type="date" name="preferredDate" /></label>
+            </div>
+            <p class="text-danger mb-0" role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">@(User.Identity?.IsAuthenticated == true ? "Submit repair request" : "Sign in to submit")</button>
+        </form>
+    }
+</section>
+@section Scripts { <script src="~/js/repairs.js" asp-append-version="true"></script> }
